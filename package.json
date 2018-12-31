@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@types/pixi.js": "^4.8.6"
+  },
+  "name": "flappy-bird",
+  "version": "0.1.0",
+  "description": "Flappy Bird Replica",
+  "main": "index.js",
+  "repository": "https://github.com/timnew/flappy-bird",
+  "author": "timnew",
+  "license": "MIT",
+  "private": true
+}
