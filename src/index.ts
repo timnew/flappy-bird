@@ -6,8 +6,11 @@ const { loader } = app
 document.body.appendChild(app.view)
 
 import birdImage from './bird.png'
+import pipeImage from './pipe.png'
 
-loader.add({ name: 'bird', url: birdImage })
+loader
+  .add({ name: 'bird', url: birdImage })
+  .add({ name: 'pipe', url: pipeImage })
 
 import Game from './Game'
 

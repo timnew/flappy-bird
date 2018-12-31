@@ -45,7 +45,11 @@ class Game {
     )
     this.gameObjects.push(player)
 
-    this.playerControl.onKeyDown = () => player.jump()
+    this.playerControl.onKeyDown = (binding: KeyboardBinding) => {
+      if (!binding.isRepeating) {
+        player.jump()
+      }
+    }
 
     this.stage.addChild(...this.gameObjects)
   }

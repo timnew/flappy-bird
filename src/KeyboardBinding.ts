@@ -4,6 +4,7 @@ type KeyboardEventRawHandler = (event: KeyboardEvent) => void
 
 export default class KeyboardBinding {
   isDown: boolean
+  isRepeating: boolean
   get isUp(): boolean {
     return !this.isDown
   }
@@ -15,11 +16,13 @@ export default class KeyboardBinding {
 
   constructor(public code: String) {
     this.isDown = false
+    this.isRepeating = false
 
     this.keyDownHandler = (event: KeyboardEvent) => {
       if (event.code === this.code) {
         event.preventDefault()
 
+        this.isRepeating = this.isDown
         this.isDown = true
 
         if (this.onKeyDown != null) {
@@ -33,6 +36,7 @@ export default class KeyboardBinding {
         event.preventDefault()
 
         this.isDown = false
+        this.isRepeating = false
 
         if (this.onKeyUp != null) {
           this.onKeyUp(this)
