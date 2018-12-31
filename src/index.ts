@@ -1,15 +1,16 @@
-import * as PIXI from 'pixi.js'
+import { Application } from 'pixi.js'
+const app = new Application()
 
-import birdImage from './bird.png'
-
-const app = new PIXI.Application({ width: 512, height: 512 })
-
-app.renderer.backgroundColor = 0xffffff
+const { loader } = app
 
 document.body.appendChild(app.view)
 
-PIXI.loader.add([birdImage]).load(() => {
-  const bird = new PIXI.Sprite(PIXI.loader.resources[birdImage].texture)
+import birdImage from './bird.png'
 
-  app.stage.addChild(bird)
-})
+loader.add({ name: 'bird', url: birdImage })
+
+import Game from './Game'
+
+const game = new Game(app)
+
+game.run()
