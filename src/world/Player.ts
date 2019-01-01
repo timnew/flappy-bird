@@ -16,6 +16,11 @@ class Player extends Actor<World> {
 
     this.x = world.screen.width / 2
     this.y = world.screen.height / 2
+    const halfHeight = this.height / 2
+
+    this.minY = halfHeight
+    this.maxY = world.screen.height - halfHeight
+    this.vanishX = -this.width / 2
 
     this.velocity = 0
 
@@ -25,6 +30,10 @@ class Player extends Actor<World> {
 
     world.playerControl.registerPlayer(this)
   }
+
+  readonly minY: number
+  readonly maxY: number
+  readonly vanishX: number
 
   private velocity: number
 
@@ -46,20 +55,19 @@ class Player extends Actor<World> {
       case PlayerState.Kill:
         this.state = PlayerState.Dead
         this.tint = 0xff00cccc
-        this.velocity = world.rasingForce
         break
       case PlayerState.Dead:
         if (this.velocity < world.maxDroppingSpeed) {
           this.velocity += world.gravity
         }
-        this.y += this.velocity
 
-        if (this.y >= world.screen.height) {
-          this.y = world.screen.height
+        this.updateSprite(world)
+
+        if (this.y >= this.minY) {
           this.x -= world.speed
         }
 
-        if (this.x == 0) {
+        if (this.x <= this.vanishX) {
           world.removeActor(this)
         }
         break
@@ -74,10 +82,10 @@ class Player extends Actor<World> {
   }: World) {
     this.y += this.velocity
 
-    if (this.y < 0) {
-      this.y = 0
-    } else if (this.y > screen.height) {
-      this.y = screen.height
+    if (this.y < this.minY) {
+      this.y = this.minY
+    } else if (this.y > this.maxY) {
+      this.y = this.maxY
     }
 
     if (this.velocity < 0) {
