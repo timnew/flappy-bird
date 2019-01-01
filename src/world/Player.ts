@@ -1,3 +1,6 @@
+import createDebug from 'debug'
+const debug = createDebug('app:Player')
+
 import World from './World'
 import Actor from '../engine/Actor'
 
@@ -41,6 +44,10 @@ class Player extends Actor<World> {
         this.updateSprite(world)
         break
       case PlayerState.Dead:
+        if (this.velocity < world.maxDroppingSpeed) {
+          this.velocity += world.gravity
+        }
+        this.y += this.velocity
         break
     }
   }
@@ -72,6 +79,13 @@ class Player extends Actor<World> {
     if (this.state != PlayerState.Dead) {
       this.state = PlayerState.Jump
     }
+  }
+
+  kill() {
+    debug('%s is killed', this.name)
+
+    this.state = PlayerState.Dead
+    this.tint = 0xcccccc
   }
 }
 
