@@ -32,7 +32,7 @@ class Game {
 
     this.world.setup()
 
-    this.app.stage.addChild(this.world)
+    this.app.stage = this.world
   }
 
   loop(deltaTime: number) {
