@@ -38,6 +38,15 @@ class Player extends Actor<World> {
   private velocity: number
 
   private state: PlayerState
+  get isLive(): boolean {
+    switch (this.state) {
+      case PlayerState.Kill:
+      case PlayerState.Dead:
+        return false
+      default:
+        return true
+    }
+  }
 
   update(deltaTime: number, world: World) {
     switch (this.state) {

@@ -1,3 +1,6 @@
+import createDebug from 'debug'
+const debug = createDebug('app:World')
+
 import Player from './Player'
 import Stage from '../engine/Stage'
 import { TopPipe, BottomPipe, Pipe } from './Pipe'
@@ -18,8 +21,7 @@ export default class World extends Stage<World> {
   private collisionBox = Rectangle.EMPTY
 
   setup() {
-    const player = new Player('player', this)
-    this.addActor(player)
+    this.addActor(new Player('player', this))
 
     this.collisionBox = new Rectangle(
       (this.screen.width - this.resources.bird.texture.width) / 2,
@@ -29,9 +31,23 @@ export default class World extends Stage<World> {
     )
 
     this.playerControl.registerHumanControl('player', 'Space')
+    this.game.keyboard
+      .onKey('KeyR')
+      .onEvent('keyDownSingle', () => this.revive())
 
     this.addActor(new TopPipe(this, 30))
     this.addActor(new BottomPipe(this, 90))
+  }
+
+  revive() {
+    const players = this.actors.getValue('Player')
+    if (players.every(player => !(player as Player).isLive)) {
+      debug('Revive a new player')
+
+      this.addActor(new Player('player', this))
+    } else {
+      debug('There is at least one active player')
+    }
   }
 
   updateStage() {
