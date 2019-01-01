@@ -34,6 +34,13 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     this.addChildAt(actor, 0)
   }
 
+  removeActor(actor: Actor<T>) {
+    debug('Remove actor: %s: %s', actor.name, actor.type)
+
+    this.actors.remove(actor.type, actor)
+    this.removeChild(actor)
+  }
+
   abstract setup(): void
 
   update(deltaTime: number, game: Game): void {

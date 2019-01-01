@@ -43,11 +43,25 @@ class Player extends Actor<World> {
         this.velocity = world.rasingForce
         this.updateSprite(world)
         break
+      case PlayerState.Kill:
+        this.state = PlayerState.Dead
+        this.tint = 0xff00cccc
+        this.velocity = world.rasingForce
+        break
       case PlayerState.Dead:
         if (this.velocity < world.maxDroppingSpeed) {
           this.velocity += world.gravity
         }
         this.y += this.velocity
+
+        if (this.y >= world.screen.height) {
+          this.y = world.screen.height
+          this.x -= world.speed
+        }
+
+        if (this.x == 0) {
+          world.removeActor(this)
+        }
         break
     }
   }
@@ -82,16 +96,19 @@ class Player extends Actor<World> {
   }
 
   kill() {
-    debug('%s is killed', this.name)
+    if (this.state == PlayerState.Kill || this.state == PlayerState.Dead) {
+      return
+    }
 
-    this.state = PlayerState.Dead
-    this.tint = 0xcccccc
+    debug('%s is killed', this.name)
+    this.state = PlayerState.Kill
   }
 }
 
 enum PlayerState {
   Jump,
   Drop,
+  Kill,
   Dead
 }
 
