@@ -5,6 +5,7 @@ import Player from './Player'
 import Stage from '../engine/Stage'
 import { TopPipe, BottomPipe, Pipe } from './Pipe'
 import { Rectangle } from 'pixi.js'
+import CollisionDetector from './CollisionDetector'
 
 export default class World extends Stage<World> {
   readonly rasingForce = -30
@@ -18,22 +19,15 @@ export default class World extends Stage<World> {
     return this._speed
   }
 
-  private collisionBox = Rectangle.EMPTY
-
   setup() {
     this.addActor(new Player('player', this))
-
-    this.collisionBox = new Rectangle(
-      (this.screen.width - this.resources.bird.texture.width) / 2,
-      0,
-      this.resources.bird.texture.width,
-      this.screen.height
-    )
 
     this.playerControl.registerHumanControl('player', 'Space')
     this.game.keyboard
       .onKey('KeyR')
       .onEvent('keyDownSingle', () => this.revive())
+
+    this.addInvisibleObject(new CollisionDetector(this))
 
     this.addActor(new TopPipe(this, 30))
     this.addActor(new BottomPipe(this, 90))
@@ -48,16 +42,5 @@ export default class World extends Stage<World> {
     } else {
       debug('There is at least one active player')
     }
-  }
-
-  updateStage() {
-    const harmfulPipes = this.actors
-      .getValue('Pipe')
-      .filter(pipe => pipe.isCollidedOn(this.collisionBox))
-
-    this.actors
-      .getValue('Player')
-      .filter(player => harmfulPipes.some(pipe => player.isCollidedOn(pipe)))
-      .forEach(player => (player as Player).kill())
   }
 }

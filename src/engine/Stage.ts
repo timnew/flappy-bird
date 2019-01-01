@@ -10,6 +10,8 @@ import { MultiDictionary } from 'typescript-collections'
 
 export default abstract class Stage<T extends Stage<T>> extends Container
   implements GameObject<Game> {
+  readonly type: string = 'Stage'
+
   get screen(): Rectangle {
     return this.game.screen
   }
