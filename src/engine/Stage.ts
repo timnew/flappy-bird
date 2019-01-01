@@ -25,7 +25,7 @@ export default abstract class Stage<T extends Stage<T>> extends Container
   }
 
   readonly actors: MultiDictionary<string, Actor<T>> = new MultiDictionary()
-  readonly invisibleObjects: MultiDictionary<
+  readonly controllers: MultiDictionary<
     string,
     GameObject<T>
   > = new MultiDictionary()
@@ -40,9 +40,9 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     this.addChildAt(actor, 0)
   }
 
-  addInvisibleObject(object: GameObject<T>) {
-    debug('Add invisible object: %s: %s', object.name, object.type)
-    this.invisibleObjects.setValue(object.type, object)
+  addController(object: GameObject<T>) {
+    debug('Add controller: %s: %s', object.name, object.type)
+    this.controllers.setValue(object.type, object)
   }
 
   removeActor(actor: Actor<T>) {
@@ -52,10 +52,10 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     this.removeChild(actor)
   }
 
-  removeInvisible(object: GameObject<T>) {
-    debug('Remove actor: %s: %s', object.name, object.type)
+  removeController(object: GameObject<T>) {
+    debug('Remove controller: %s: %s', object.name, object.type)
 
-    this.invisibleObjects.remove(object.type, object)
+    this.controllers.remove(object.type, object)
   }
 
   abstract setup(): void
@@ -65,7 +65,7 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     this.actors.values().forEach(actor => {
       actor.update(deltaTime, stage)
     })
-    this.invisibleObjects.values().forEach(obj => {
+    this.controllers.values().forEach(obj => {
       obj.update(deltaTime, stage)
     })
 

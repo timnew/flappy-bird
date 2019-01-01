@@ -27,7 +27,7 @@ export default class World extends Stage<World> {
       .onKey('KeyR')
       .onEvent('keyDownSingle', () => this.revive())
 
-    this.addInvisibleObject(new CollisionDetector(this))
+    this.addController(new CollisionDetector(this))
 
     this.addActor(new TopPipe(this, 30))
     this.addActor(new BottomPipe(this, 90))
