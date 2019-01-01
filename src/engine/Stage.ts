@@ -23,6 +23,10 @@ export default abstract class Stage<T extends Stage<T>> extends Container
   }
 
   readonly actors: MultiDictionary<string, Actor<T>> = new MultiDictionary()
+  readonly invisibleObjects: MultiDictionary<
+    string,
+    GameObject<T>
+  > = new MultiDictionary()
 
   constructor(readonly game: Game) {
     super()
@@ -34,11 +38,22 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     this.addChildAt(actor, 0)
   }
 
+  addInvisibleObject(object: GameObject<T>) {
+    debug('Add invisible object: %s: %s', object.name, object.type)
+    this.invisibleObjects.setValue(object.type, object)
+  }
+
   removeActor(actor: Actor<T>) {
     debug('Remove actor: %s: %s', actor.name, actor.type)
 
     this.actors.remove(actor.type, actor)
     this.removeChild(actor)
+  }
+
+  removeInvisible(object: GameObject<T>) {
+    debug('Remove actor: %s: %s', object.name, object.type)
+
+    this.invisibleObjects.remove(object.type, object)
   }
 
   abstract setup(): void
@@ -47,6 +62,9 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     const stage: T = this as any // To workaround the compiler type check
     this.actors.values().forEach(actor => {
       actor.update(deltaTime, stage)
+    })
+    this.invisibleObjects.values().forEach(obj => {
+      obj.update(deltaTime, stage)
     })
 
     this.updateStage()
