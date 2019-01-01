@@ -12,7 +12,7 @@ PIXI.Rectangle.prototype.overlaps = function overlaps(
   return (
     this.left < another.right &&
     this.right > another.left &&
-    this.top > another.bottom &&
-    this.bottom < another.top
+    this.top < another.bottom &&
+    this.bottom > another.top
   )
 }
