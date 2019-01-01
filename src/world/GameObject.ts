@@ -1,5 +1,5 @@
 import { Sprite, Texture } from 'pixi.js'
-import Game from './Game'
+import Game from '../engine/Game'
 
 export default abstract class GameObject extends Sprite {
   constructor(texture: Texture) {

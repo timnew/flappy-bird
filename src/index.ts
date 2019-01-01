@@ -5,14 +5,14 @@ const { loader } = app
 
 document.body.appendChild(app.view)
 
-import birdImage from './bird.png'
-import pipeImage from './pipe.png'
+import birdImage from './world/bird.png'
+import pipeImage from './world/pipe.png'
 
 loader
   .add({ name: 'bird', url: birdImage })
   .add({ name: 'pipe', url: pipeImage })
 
-import Game from './Game'
+import Game from './engine/Game'
 
 const game = new Game(app)
 

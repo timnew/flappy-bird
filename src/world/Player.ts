@@ -1,6 +1,6 @@
 import { Sprite, Texture, Rectangle, Container, loaders } from 'pixi.js'
 import GameObject from './GameObject'
-import Game from './Game'
+import Game from '../engine/Game'
 
 export type PlayerControlApi = () => void
 

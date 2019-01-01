@@ -1,7 +1,6 @@
 import { Application, Rectangle, Container, ticker, loaders } from 'pixi.js'
-import Player from './Player'
-import GameObject from './GameObject'
-import KeyboardBinding from './KeyboardBinding'
+import Player from '../world/Player'
+import GameObject from '../world/GameObject'
 import KeyboardListener from './KeyboardListener'
 import PlayerControl from './PlayerControl'
 
