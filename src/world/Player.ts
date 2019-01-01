@@ -1,4 +1,3 @@
-import { Rectangle } from 'pixi.js'
 import World from './World'
 import Actor from '../engine/Actor'
 
@@ -32,24 +31,27 @@ class Player extends Actor<World> {
   update(deltaTime: number, world: World) {
     switch (this.state) {
       case PlayerState.Drop:
-        if (this.velocity < 5) {
-          this.velocity += 5
+        if (this.velocity < world.maxDroppingSpeed) {
+          this.velocity += world.gravity
         }
-        this.updateSprite(world.screen)
+        this.updateSprite(world)
         break
       case PlayerState.Jump:
         this.state = PlayerState.Drop
-        this.velocity = -30
-        this.updateSprite(world.screen)
+        this.velocity = world.rasingForce
+        this.updateSprite(world)
         break
       case PlayerState.Dead:
         break
     }
   }
 
-  static MAX_ROTATION = Math.PI / 6
-
-  private updateSprite(screen: Rectangle) {
+  private updateSprite({
+    screen,
+    maxRasingSpeed,
+    maxDroppingSpeed,
+    maxRotation
+  }: World) {
     this.y += this.velocity
 
     if (this.y < 0) {
@@ -59,9 +61,9 @@ class Player extends Actor<World> {
     }
 
     if (this.velocity < 0) {
-      this.rotation = (this.velocity / 30) * Player.MAX_ROTATION
+      this.rotation = (this.velocity / maxRasingSpeed) * maxRotation
     } else if (this.velocity > 0) {
-      this.rotation = (this.velocity / 5) * Player.MAX_ROTATION
+      this.rotation = (this.velocity / maxDroppingSpeed) * maxRotation
     } else {
       this.rotation = 0
     }

@@ -24,6 +24,12 @@ export default class World extends Container implements GameObject<Game> {
     super()
   }
 
+  readonly rasingForce = -30
+  readonly maxRasingSpeed = -30
+  readonly gravity = 5
+  readonly maxDroppingSpeed = 5
+  readonly maxRotation = Math.PI / 6
+
   addActor(actor: Actor<World>) {
     this.actors.push(actor)
     this.addChild(actor)
