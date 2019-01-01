@@ -1,3 +1,3 @@
-export default interface GameObject<TWorld> {
-  update(deltaTime: number, word: TWorld): void
+export default interface GameObject<TScene> {
+  update(deltaTime: number, scene: TScene): void
 }

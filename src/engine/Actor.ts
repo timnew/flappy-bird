@@ -1,7 +1,7 @@
 import { Sprite } from 'pixi.js'
 import GameObject from './GameObject'
 
-export default abstract class Actor<TWorld> extends Sprite
-  implements GameObject<TWorld> {
-  abstract update(deltaTime: number, word: TWorld): void
+export default abstract class Actor<TScene> extends Sprite
+  implements GameObject<TScene> {
+  abstract update(deltaTime: number, world: TScene): void
 }
