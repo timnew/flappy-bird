@@ -7,11 +7,9 @@ class Player extends Actor<World> {
   readonly controlApi: PlayerControlApi
 
   constructor(readonly name: string, world: World) {
-    super(world.resources.bird.texture)
+    super('Player', world.resources.bird.texture)
 
     this.anchor.set(0.5)
-
-    console.log(this.width, this.height)
 
     this.x = world.screen.width / 2
     this.y = world.screen.height / 2
