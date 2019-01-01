@@ -1,5 +1,3 @@
-import World from './World'
-
-export default interface GameObject {
-  update(deltaTime: number, word: World): void
+export default interface GameObject<TWorld> {
+  update(deltaTime: number, word: TWorld): void
 }

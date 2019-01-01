@@ -1,7 +1,7 @@
 import { Application, Rectangle, loaders } from 'pixi.js'
 import KeyboardListener from './KeyboardListener'
 import PlayerControl from './PlayerControl'
-import World from './World'
+import World from '../world/World'
 
 class Game {
   constructor(private app: Application) {}
@@ -36,7 +36,7 @@ class Game {
   }
 
   loop(deltaTime: number) {
-    this.world.update(deltaTime)
+    this.world.update(deltaTime, this)
   }
 }
 

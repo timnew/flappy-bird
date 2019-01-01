@@ -1,10 +1,10 @@
-import { Sprite, Texture, Rectangle, Container, loaders } from 'pixi.js'
-import World from '../engine/World'
+import { Rectangle } from 'pixi.js'
+import World from './World'
 import Actor from '../engine/Actor'
 
 export type PlayerControlApi = () => void
 
-class Player extends Actor {
+class Player extends Actor<World> {
   readonly controlApi: PlayerControlApi
 
   constructor(readonly name: string, world: World) {

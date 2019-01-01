@@ -1,10 +1,11 @@
 import { Container, loaders, Rectangle } from 'pixi.js'
-import Game from './Game'
-import Player from '../world/Player'
-import PlayerControl from './PlayerControl'
-import Actor from './Actor'
+import Game from '../engine/Game'
+import Player from './Player'
+import PlayerControl from '../engine/PlayerControl'
+import Actor from '../engine/Actor'
+import GameObject from '../engine/GameObject'
 
-export default class World extends Container {
+export default class World extends Container implements GameObject<Game> {
   get screen(): Rectangle {
     return this.game.screen
   }
@@ -17,13 +18,13 @@ export default class World extends Container {
     return this.game.playerControl
   }
 
-  readonly actors: Actor[] = []
+  readonly actors: Actor<World>[] = []
 
   constructor(readonly game: Game) {
     super()
   }
 
-  addActor(actor: Actor) {
+  addActor(actor: Actor<World>) {
     this.actors.push(actor)
     this.addChild(actor)
   }
@@ -34,7 +35,7 @@ export default class World extends Container {
     this.playerControl.registerHumanControl('player', 'Space')
   }
 
-  update(deltaTime: number): void {
+  update(deltaTime: number, game: Game): void {
     this.actors.forEach(actor => actor.update(deltaTime, this))
   }
 }
