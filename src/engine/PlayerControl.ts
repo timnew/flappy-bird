@@ -4,7 +4,7 @@ const debug = createDebug('app:PlayerControl')
 
 import Game from './Game'
 import { EventEmitter } from 'events'
-import Player, { PlayerControlApi } from '../world/Player'
+import Player from '../world/Player'
 
 export default class PlayerControl {
   private emitter: EventEmitter = new EventEmitter()

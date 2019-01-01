@@ -1,33 +1,20 @@
-import { Application, Rectangle, Container, ticker, loaders } from 'pixi.js'
-import Player from '../world/Player'
-import GameObject from '../world/GameObject'
+import { Application, Rectangle, loaders } from 'pixi.js'
 import KeyboardListener from './KeyboardListener'
 import PlayerControl from './PlayerControl'
+import World from './World'
 
 class Game {
-  constructor(private app: Application) {
-    console.log(this.screen)
-  }
+  constructor(private app: Application) {}
 
   get screen(): Rectangle {
     return this.app.screen
   }
 
-  get stage(): Container {
-    return this.app.stage
-  }
-
-  get ticker(): ticker.Ticker {
-    return this.app.ticker
-  }
-
-  get loader(): loaders.Loader {
-    return this.app.loader
-  }
-
   get resources(): loaders.ResourceDictionary {
-    return this.loader.resources
+    return this.app.loader.resources
   }
+
+  world: World = new World(this)
 
   run() {
     this.app.loader.load(() => {
@@ -36,26 +23,20 @@ class Game {
     })
   }
 
-  readonly gameObjects: GameObject[] = []
-
   readonly keyboard: KeyboardListener = new KeyboardListener()
 
   readonly playerControl: PlayerControl = new PlayerControl(this)
 
   setup() {
-    const resources = this.app.loader.resources
-
-    this.gameObjects.push(new Player(this, 'player'))
-
-    this.stage.addChild(...this.gameObjects)
-
-    this.playerControl.registerHumanControl('player', 'Space')
-
     this.keyboard.subscribe()
+
+    this.world.setup()
+
+    this.app.stage.addChild(this.world)
   }
 
   loop(deltaTime: number) {
-    this.gameObjects.forEach(obj => obj.update(deltaTime, this))
+    this.world.update(deltaTime)
   }
 }
 

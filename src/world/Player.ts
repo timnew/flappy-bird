@@ -1,20 +1,20 @@
 import { Sprite, Texture, Rectangle, Container, loaders } from 'pixi.js'
-import GameObject from './GameObject'
-import Game from '../engine/Game'
+import World from '../engine/World'
+import Actor from '../engine/Actor'
 
 export type PlayerControlApi = () => void
 
-class Player extends GameObject {
+class Player extends Actor {
   readonly controlApi: PlayerControlApi
 
-  constructor(game: Game, readonly name: string) {
-    super(game.resources.bird.texture)
+  constructor(readonly name: string, world: World) {
+    super(world.resources.bird.texture)
 
     this.anchor.set(0.5, 0.5)
     this.scale.set(0.1, 0.1)
 
-    this.x = game.screen.width / 2
-    this.y = game.screen.height / 2
+    this.x = world.screen.width / 2
+    this.y = world.screen.height / 2
 
     this.velocity = 0
 
@@ -22,25 +22,25 @@ class Player extends GameObject {
 
     this.controlApi = this.jump.bind(this)
 
-    game.playerControl.registerPlayer(this)
+    world.playerControl.registerPlayer(this)
   }
 
   velocity: number
 
   private state: PlayerState
 
-  update(deltaTime: number, game: Game) {
+  update(deltaTime: number, world: World) {
     switch (this.state) {
       case PlayerState.Drop:
         if (this.velocity < 5) {
           this.velocity += 5
         }
-        this.updateSprite(game.screen)
+        this.updateSprite(world.screen)
         break
       case PlayerState.Jump:
         this.state = PlayerState.Drop
         this.velocity = -30
-        this.updateSprite(game.screen)
+        this.updateSprite(world.screen)
         break
       case PlayerState.Dead:
         break
