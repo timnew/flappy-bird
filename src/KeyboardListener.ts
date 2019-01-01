@@ -1,3 +1,7 @@
+import createDebug from 'debug'
+
+const debug = createDebug('app:KeyboardListener')
+
 import { EventEmitter } from 'events'
 
 export type KeyBindingHandler = (binding: KeyBinding) => void
@@ -29,12 +33,12 @@ export class KeyBinding {
   }
 
   onEvent(event: KeyBindingEvents, handler: KeyBindingHandler) {
-    console.log(`KeyboardListener: Listen on ${this.code} for ${event}`)
+    debug(`Listen on %s for %s`, this.code, event)
     this.emitter.on(event, handler)
   }
 
   trigger(event: KeyBindingEvents) {
-    console.log(`KeyboardListener: Trigger ${event} for ${this.code}`)
+    debug(`Trigger %s for %s`, event, this.code)
     this.emitter.emit(event, this)
   }
 

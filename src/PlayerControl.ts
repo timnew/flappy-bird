@@ -1,3 +1,7 @@
+import createDebug from 'debug'
+
+const debug = createDebug('app:PlayerControl')
+
 import Game from './Game'
 import { EventEmitter } from 'events'
 import Player, { PlayerControlApi } from './Player'
@@ -8,21 +12,20 @@ export default class PlayerControl {
   constructor(readonly game: Game) {}
 
   registerHumanControl(playerName: string, keyCode: string) {
-    console.log(
-      `PlayerControl: Register Human Control: ${keyCode} -> ${playerName}`
-    )
+    debug('Register Human Control: %s -> %s', keyCode, playerName)
+
     this.game.keyboard
       .onKey(keyCode)
       .onEvent('keyDownSingle', () => this.trigger(playerName))
   }
 
   trigger(playerName: string) {
-    console.log(`PlayerControl: Trigger ${playerName}`)
+    debug(`Trigger %s`, playerName)
     this.emitter.emit(playerName)
   }
 
   registerPlayer(player: Player) {
-    console.log(`PlayerControl: Register player ${player.name}`)
+    debug(`Register player %s`, player.name)
     this.emitter.on(player.name, player.controlApi)
   }
 }
