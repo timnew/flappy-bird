@@ -1,18 +1,20 @@
 import './patches/Rectangle-overlaps'
 
 import { Application } from 'pixi.js'
-const app = new Application()
+const app = new Application({ width: 800, height: 600 })
 
 const { loader } = app
 
 document.body.appendChild(app.view)
 
 import birdImage from './world/bird.png'
-import pipeImage from './world/pipe.png'
+import topPipeImage from './world/topPipe.png'
+import bottomPipeImage from './world/bottomPipe.png'
 
 loader
   .add({ name: 'bird', url: birdImage })
-  .add({ name: 'pipe', url: pipeImage })
+  .add({ name: 'topPipe', url: topPipeImage })
+  .add({ name: 'bottomPipe', url: bottomPipeImage })
 
 import Game from './engine/Game'
 

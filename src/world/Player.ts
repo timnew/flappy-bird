@@ -9,8 +9,9 @@ class Player extends Actor<World> {
   constructor(readonly name: string, world: World) {
     super(world.resources.bird.texture)
 
-    this.anchor.set(0.5, 0.5)
-    this.scale.set(0.1, 0.1)
+    this.anchor.set(0.5)
+
+    console.log(this.width, this.height)
 
     this.x = world.screen.width / 2
     this.y = world.screen.height / 2
@@ -24,7 +25,7 @@ class Player extends Actor<World> {
     world.playerControl.registerPlayer(this)
   }
 
-  velocity: number
+  private velocity: number
 
   private state: PlayerState
 
