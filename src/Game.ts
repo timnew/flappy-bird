@@ -2,6 +2,8 @@ import { Application, Rectangle, Container, ticker, loaders } from 'pixi.js'
 import Player from './Player'
 import GameObject from './GameObject'
 import KeyboardBinding from './KeyboardBinding'
+import KeyboardListener from './KeyboardListener'
+import PlayerControl from './PlayerControl'
 
 class Game {
   constructor(private app: Application) {
@@ -24,6 +26,10 @@ class Game {
     return this.app.loader
   }
 
+  get resources(): loaders.ResourceDictionary {
+    return this.loader.resources
+  }
+
   run() {
     this.app.loader.load(() => {
       this.setup()
@@ -31,27 +37,22 @@ class Game {
     })
   }
 
-  private gameObjects: GameObject[] = []
+  readonly gameObjects: GameObject[] = []
 
-  private playerControl: KeyboardBinding = new KeyboardBinding('Space')
+  readonly keyboard: KeyboardListener = new KeyboardListener()
+
+  readonly playerControl: PlayerControl = new PlayerControl(this)
 
   setup() {
     const resources = this.app.loader.resources
 
-    const player = new Player(
-      resources.bird.texture,
-      this.screen.width / 2,
-      this.screen.height / 2
-    )
-    this.gameObjects.push(player)
-
-    this.playerControl.onKeyDown = (binding: KeyboardBinding) => {
-      if (!binding.isRepeating) {
-        player.jump()
-      }
-    }
+    this.gameObjects.push(new Player(this, 'player'))
 
     this.stage.addChild(...this.gameObjects)
+
+    this.playerControl.registerHumanControl('player', 'Space')
+
+    this.keyboard.subscribe()
   }
 
   loop(deltaTime: number) {

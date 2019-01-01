@@ -1,19 +1,28 @@
-import { Sprite, Texture, Rectangle, Container } from 'pixi.js'
+import { Sprite, Texture, Rectangle, Container, loaders } from 'pixi.js'
 import GameObject from './GameObject'
 import Game from './Game'
 
+export type PlayerControlApi = () => void
+
 class Player extends GameObject {
-  constructor(texture: Texture, x: number, y: number) {
-    super(texture)
+  readonly controlApi: PlayerControlApi
+
+  constructor(game: Game, readonly name: string) {
+    super(game.resources.bird.texture)
+
     this.anchor.set(0.5, 0.5)
     this.scale.set(0.1, 0.1)
 
-    this.x = x
-    this.y = y
+    this.x = game.screen.width / 2
+    this.y = game.screen.height / 2
 
     this.velocity = 0
 
     this.state = PlayerState.Drop
+
+    this.controlApi = this.jump.bind(this)
+
+    game.playerControl.registerPlayer(this)
   }
 
   velocity: number
