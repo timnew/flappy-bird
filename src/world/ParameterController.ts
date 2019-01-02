@@ -39,6 +39,8 @@ export default class ParameterController implements GameObject<World> {
 
   minPipeBottomMargin: number = 30
 
+  autoRevive: boolean = true
+
   setup(world: World) {
     const birdTexture = world.resources.bird.texture
 
@@ -75,6 +77,10 @@ export default class ParameterController implements GameObject<World> {
 
     this.maxPipeDistance = this.pipeWidth * 6
     this.minPipeDistance = this.pipeWidth * 4
+
+    // Switches
+
+    this.autoRevive = true
   }
 
   update(deltaTime: number, stage: World): void {}

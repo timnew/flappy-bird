@@ -54,10 +54,14 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     }
   }
 
-  addActor(actor: GameObject<T> & DisplayObject) {
+  addActor(actor: GameObject<T> & DisplayObject, onTop: boolean = false) {
     debug('Add actor: %s', actor.name)
     this.actors.setValue(actor.fullName.type, actor)
-    this.addChildAt(actor as DisplayObject, 0)
+    if (onTop) {
+      this.addChild(actor as DisplayObject)
+    } else {
+      this.addChildAt(actor as DisplayObject, 0)
+    }
   }
 
   private addController(controller: GameObject<T>) {

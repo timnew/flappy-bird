@@ -21,8 +21,10 @@ export default class World extends Stage<World> {
 
     this.playerControl.registerHumanControl('player', 'Space')
     this.game.keyboard
-      .onKey('KeyQ')
-      .onEvent('keyDownSingle', () => this.revive())
+      .onKey('KeyF')
+      .onEvent('keyDownSingle', () =>
+        this.addActor(new Bird('player', this, true), true)
+      )
 
     this.addObject(new CollisionDetector(this))
     this.addObject(new PipeGenerator(this))
@@ -30,14 +32,16 @@ export default class World extends Stage<World> {
     this.addObject(new Bird('player', this))
   }
 
-  revive() {
-    const players = this.actors.getValue('Player')
-    if (players.every(bird => !(bird as Bird).isLive)) {
-      debug('Revive a new player')
+  hasLiveBird(): boolean {
+    const birds = this.actors.getValue('Bird')
+    return birds.some(bird => (bird as Bird).isLive)
+  }
 
-      this.addObject(new Bird('player', this))
-    } else {
-      debug('There is at least one active player')
+  tryRevive(bird: Bird) {
+    if (this.params.autoRevive && !this.hasLiveBird()) {
+      debug('Revive bird: %s', bird.name)
+
+      this.addActor(new Bird(bird.fullName.name, this, true), true)
     }
   }
 }

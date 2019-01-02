@@ -3,101 +3,93 @@ const debug = createDebug('app:Bird')
 
 import World from './World'
 import Actor from '../engine/Actor'
-import ParameterController from './ParameterController'
 import FullName from '../engine/FullName'
+import { Rectangle } from 'pixi.js'
 
 export type PlayerControlApi = () => void
 
 export default class Bird extends Actor<World> {
   readonly controlApi: PlayerControlApi
 
-  constructor(name: string, world: World) {
+  constructor(name: string, readonly world: World, isPending: boolean = false) {
     super(new FullName('Bird', name), world.resources.bird.texture)
 
     this.anchor.set(0.5)
 
-    this.x = world.screen.width / 2
-    this.y = world.screen.height / 2
-    const halfHeight = this.height / 2
+    const { screen } = world
 
-    this.minY = halfHeight
-    this.maxY = world.screen.height - halfHeight
-    this.vanishX = -this.width / 2
+    this.x = screen.width / 2
+    this.y = screen.height / 2
+
+    const halfHeight = this.height / 2
+    const halfWidth = this.width / 2
+
+    this.moveBounds = new Rectangle(
+      -halfWidth,
+      halfHeight,
+      screen.width / 2 + halfWidth,
+      screen.height - this.height
+    )
 
     this.velocity = 0
 
-    this.state = PlayerState.Drop
+    this.controlApi = this.trigger.bind(this)
 
-    this.controlApi = this.jump.bind(this)
+    if (isPending) {
+      this.state = new BirdPendingState(this)
+    } else {
+      this.state = new BirdLiveState(this)
+    }
 
     world.playerControl.registerBird(this)
+    ;(window as any).bird = this
   }
 
-  readonly minY: number
-  readonly maxY: number
-  readonly vanishX: number
+  readonly moveBounds: Rectangle
 
-  private velocity: number
+  velocity: number
+  state: BirdState
 
-  private state: PlayerState
   get isLive(): boolean {
-    switch (this.state) {
-      case PlayerState.Kill:
-      case PlayerState.Dead:
-        return false
-      default:
-        return true
-    }
+    return this.state.isLive
   }
 
   update(deltaTime: number, world: World) {
-    const params = world.params
+    this.state.onUpdate(deltaTime)
+  }
 
-    switch (this.state) {
-      case PlayerState.Drop:
-        if (this.velocity < params.maxDroppingSpeed) {
-          this.velocity += params.gravity * deltaTime
-        }
-        this.updateSprite(deltaTime, params)
-        break
-      case PlayerState.Jump:
-        this.state = PlayerState.Drop
-        this.velocity = -params.raisingSpeed
-        this.updateSprite(deltaTime, params)
-        break
-      case PlayerState.Kill:
-        this.state = PlayerState.Dead
-        this.tint = 0xff00cccc
-        break
-      case PlayerState.Dead:
-        if (this.velocity < params.maxDroppingSpeed) {
-          this.velocity += params.gravity * deltaTime
-        }
+  updateVelocity(deltaTime: number) {
+    const { maxDroppingSpeed, gravity } = this.world.params
 
-        this.updateSprite(deltaTime, params)
-
-        if (this.y >= this.minY) {
-          this.x -= params.speed * deltaTime
-        }
-
-        if (this.x <= this.vanishX) {
-          world.removeObject(this)
-        }
-        break
+    if (this.velocity < maxDroppingSpeed) {
+      this.velocity += gravity * deltaTime
     }
   }
 
-  private updateSprite(
-    deltaTime: number,
-    { maxRaisingSpeed, maxDroppingSpeed, maxRotation }: ParameterController
-  ) {
+  updateX(deltaTime: number) {
+    const { speed } = this.world.params
+    this.x -= speed * deltaTime
+    if (this.x <= this.moveBounds.left) {
+      this.world.removeObject(this)
+    }
+  }
+
+  updateY(deltaTime: number) {
     this.y += this.velocity * deltaTime
 
-    if (this.y < this.minY) {
-      this.y = this.minY
-    } else if (this.y > this.maxY) {
-      this.y = this.maxY
+    if (this.y < this.moveBounds.top) {
+      this.velocity = 0
+      this.y = this.moveBounds.top
+      this.state.onHitTop()
+    } else if (this.y > this.moveBounds.bottom) {
+      this.velocity = 0
+      this.y = this.moveBounds.bottom
+      this.state.onHitBottom()
     }
+  }
+
+  updateRotation() {
+    const { maxRaisingSpeed, maxDroppingSpeed, maxRotation } = this.world.params
 
     if (this.velocity < 0) {
       this.rotation = (this.velocity / maxRaisingSpeed) * maxRotation
@@ -108,25 +100,92 @@ export default class Bird extends Actor<World> {
     }
   }
 
-  jump() {
-    if (this.state != PlayerState.Dead) {
-      this.state = PlayerState.Jump
-    }
+  trigger() {
+    this.state.onTrigger()
   }
 
   kill() {
-    if (this.state == PlayerState.Kill || this.state == PlayerState.Dead) {
-      return
-    }
-
-    debug('%s is killed', this.name)
-    this.state = PlayerState.Kill
+    this.state.onKill()
   }
 }
 
-export enum PlayerState {
-  Jump,
-  Drop,
-  Kill,
-  Dead
+abstract class BirdState {
+  constructor(
+    readonly bird: Bird,
+    readonly name: string,
+    readonly isLive: boolean = false
+  ) {
+    bird.state = this
+    debug('Bird[%s] state changed to %s', bird.name, name)
+  }
+
+  onUpdate(deltaTime: number): void {}
+
+  onTrigger() {}
+
+  onKill() {}
+
+  onHitTop() {}
+
+  onHitBottom() {}
+}
+
+class BirdLiveState extends BirdState {
+  constructor(bird: Bird) {
+    super(bird, 'Live', true)
+
+    bird.alpha = 1
+    bird.tint = 0xffffff
+  }
+
+  onUpdate(deltaTime: number): void {
+    const bird = this.bird
+
+    bird.updateY(deltaTime)
+    bird.updateVelocity(deltaTime)
+    bird.updateRotation()
+  }
+
+  onTrigger() {
+    const bird = this.bird
+    const { raisingSpeed } = bird.world.params
+
+    bird.velocity = -raisingSpeed
+    bird.updateRotation()
+  }
+
+  onKill() {
+    new BirdDeadState(this.bird)
+  }
+}
+
+class BirdDeadState extends BirdState {
+  constructor(bird: Bird) {
+    super(bird, 'Dead', false)
+
+    bird.tint = 0xff00cccc
+
+    bird.world.tryRevive(bird)
+  }
+
+  onUpdate(deltaTime: number): void {
+    const bird = this.bird
+
+    bird.updateY(deltaTime)
+    bird.updateVelocity(deltaTime)
+    bird.updateRotation()
+    bird.updateX(deltaTime)
+  }
+}
+
+class BirdPendingState extends BirdState {
+  constructor(bird: Bird) {
+    super(bird, 'Pending', false)
+    bird.alpha = 0.5
+  }
+
+  onTrigger() {
+    new BirdLiveState(this.bird)
+    this.bird.trigger()
+  }
 }
