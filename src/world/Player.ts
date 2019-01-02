@@ -105,13 +105,6 @@ class Player extends Actor<World> {
     } else {
       this.rotation = 0
     }
-
-    debug(
-      'y: %d v: %d r: %d',
-      this.y,
-      this.velocity,
-      (this.rotation / Math.PI) * 180
-    )
   }
 
   jump() {
