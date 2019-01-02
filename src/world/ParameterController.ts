@@ -45,7 +45,7 @@ export default class ParameterController {
 
     // Horizontal
 
-    this.speed = world.screen.width / 3
+    this.speed = world.screen.width / 4
 
     // Vertical
 
@@ -66,8 +66,8 @@ export default class ParameterController {
       ((this.pipeWidth + this.birdWidth) / this.speed) *
       Math.min(this.maxDroppingSpeed, this.maxRaisingSpeed, this.gravity / 60)
 
-    this.minGapSize = minFeasibleGapSize * 6
-    this.maxGapSize = minFeasibleGapSize * 10
+    this.minGapSize = minFeasibleGapSize * 5
+    this.maxGapSize = minFeasibleGapSize * 8
 
     this.maxPipeDistance = this.pipeWidth * 6
     this.minPipeDistance = this.pipeWidth * 4
