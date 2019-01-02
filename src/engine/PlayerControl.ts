@@ -4,7 +4,7 @@ const debug = createDebug('app:PlayerControl')
 
 import Game from './Game'
 import { EventEmitter } from 'events'
-import Player from '../world/Player'
+import Bird from '../world/Bird'
 
 export default class PlayerControl {
   private emitter: EventEmitter = new EventEmitter()
@@ -24,8 +24,8 @@ export default class PlayerControl {
     this.emitter.emit(playerName)
   }
 
-  registerPlayer(player: Player) {
-    debug(`Register player %s`, player.name)
-    this.emitter.on(player.name, player.controlApi)
+  registerBird(bird: Bird) {
+    debug(`Register player %s`, bird.name)
+    this.emitter.on(bird.name, bird.controlApi)
   }
 }

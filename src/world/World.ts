@@ -1,7 +1,7 @@
 import createDebug from 'debug'
 const debug = createDebug('app:World')
 
-import Player from './Player'
+import Bird from './Bird'
 import Stage from '../engine/Stage'
 import CollisionDetector from './CollisionDetector'
 import PipeGenerator from './PipeGenerator'
@@ -13,7 +13,7 @@ export default class World extends Stage<World> {
   setup() {
     this.params.setup(this)
 
-    this.addActor(new Player('player', this))
+    this.addActor(new Bird('player', this))
 
     this.playerControl.registerHumanControl('player', 'Space')
     this.game.keyboard
@@ -26,10 +26,10 @@ export default class World extends Stage<World> {
 
   revive() {
     const players = this.actors.getValue('Player')
-    if (players.every(player => !(player as Player).isLive)) {
+    if (players.every(bird => !(bird as Bird).isLive)) {
       debug('Revive a new player')
 
-      this.addActor(new Player('player', this))
+      this.addActor(new Bird('player', this))
     } else {
       debug('There is at least one active player')
     }

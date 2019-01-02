@@ -1,5 +1,5 @@
 import createDebug from 'debug'
-const debug = createDebug('app:Player')
+const debug = createDebug('app:Bird')
 
 import World from './World'
 import Actor from '../engine/Actor'
@@ -7,11 +7,11 @@ import ParameterController from './ParameterController'
 
 export type PlayerControlApi = () => void
 
-class Player extends Actor<World> {
+export default class Bird extends Actor<World> {
   readonly controlApi: PlayerControlApi
 
   constructor(readonly name: string, world: World) {
-    super('Player', world.resources.bird.texture)
+    super('Bird', world.resources.bird.texture)
 
     this.anchor.set(0.5)
 
@@ -29,7 +29,7 @@ class Player extends Actor<World> {
 
     this.controlApi = this.jump.bind(this)
 
-    world.playerControl.registerPlayer(this)
+    world.playerControl.registerBird(this)
   }
 
   readonly minY: number
@@ -123,11 +123,9 @@ class Player extends Actor<World> {
   }
 }
 
-enum PlayerState {
+export enum PlayerState {
   Jump,
   Drop,
   Kill,
   Dead
 }
-
-export default Player

@@ -1,7 +1,7 @@
 import GameObject from '../engine/GameObject'
 import World from './World'
 import { Rectangle } from 'pixi.js'
-import Player from './Player'
+import Bird from './Bird'
 
 export default class CollisionDetector implements GameObject<World> {
   readonly name: string = 'Collision Detector'
@@ -24,8 +24,8 @@ export default class CollisionDetector implements GameObject<World> {
       .filter(pipe => pipe.isCollidedOn(this.collisionBox))
 
     world.actors
-      .getValue('Player')
-      .filter(player => harmfulPipes.some(pipe => player.isCollidedOn(pipe)))
-      .forEach(player => (player as Player).kill())
+      .getValue('Bird')
+      .filter(brid => harmfulPipes.some(pipe => bird.isCollidedOn(pipe)))
+      .forEach(bird => (bird as Bird).kill())
   }
 }
