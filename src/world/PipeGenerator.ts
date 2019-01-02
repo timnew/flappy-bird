@@ -1,3 +1,6 @@
+import createDebug from 'debug'
+const debug = createDebug('app:PipeGenerator')
+
 import GameObject from '../engine/GameObject'
 import World from './World'
 import { randomInt } from '../engine/randomGenerator'
@@ -9,7 +12,7 @@ export default class PipeGenerator implements GameObject<World> {
 
   readonly initialX: number
   get distanceThreshold(): number {
-    return this.world.speed
+    return this.world.params.speed
   }
 
   private _distance: number = 0
@@ -19,12 +22,11 @@ export default class PipeGenerator implements GameObject<World> {
 
   constructor(readonly world: World) {
     this.initialX = world.screen.width
-    this.generateDistance(50)
+    this._distance = randomInt(world.params.pipeWidth * 3)
   }
 
   update(deltaTime: number, world: World): void {
-    this._distance -= world.speed
-
+    this._distance -= world.params.speed * deltaTime
     if (this.distance < this.distanceThreshold) {
       this.generatePipe()
       this.generateDistance()
@@ -32,15 +34,18 @@ export default class PipeGenerator implements GameObject<World> {
   }
 
   generatePipe() {
-    const halfGapSize =
-      randomInt(this.world.maxGapSize, this.world.minGapSize) / 2
+    const params = this.world.params
+
+    const halfGapSize = randomInt(params.maxGapSize, params.minGapSize) / 2
 
     const gapPosition = randomInt(
-      this.world.screen.height - this.world.minPipeBottomMargin - halfGapSize,
-      this.world.minPipeTopMargin + halfGapSize
+      this.world.screen.height - params.minPipeBottomMargin - halfGapSize,
+      params.minPipeTopMargin + halfGapSize
     )
 
     const x = this.distance + this.initialX
+
+    debug('Generate Pipe: [%d, %d +- %d]', x, gapPosition, halfGapSize)
 
     this.world.addActor(new TopPipe(this.world, gapPosition - halfGapSize, x))
     this.world.addActor(
@@ -48,7 +53,10 @@ export default class PipeGenerator implements GameObject<World> {
     )
   }
 
-  generateDistance(maxDistance: number = this.world.maxPipeDistance) {
-    this._distance = randomInt(maxDistance)
+  generateDistance() {
+    this._distance = randomInt(
+      this.world.params.maxPipeDistance,
+      this.world.params.minPipeDistance
+    )
   }
 }

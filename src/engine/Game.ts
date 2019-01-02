@@ -1,4 +1,4 @@
-import { Application, Rectangle, loaders } from 'pixi.js'
+import { Application, Rectangle, loaders, ticker } from 'pixi.js'
 import KeyboardListener from './KeyboardListener'
 import PlayerControl from './PlayerControl'
 import World from '../world/World'
@@ -35,8 +35,10 @@ class Game {
     this.app.stage = this.world
   }
 
-  loop(deltaTime: number) {
-    this.world.update(deltaTime, this)
+  loop() {
+    const ticker = this.app.ticker
+
+    this.world.update(ticker.elapsedMS / 1000, this)
   }
 }
 

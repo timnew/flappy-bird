@@ -21,7 +21,7 @@ export abstract class Pipe extends Actor<World> {
   }
 
   update(deltaTime: number, world: World): void {
-    this.x -= world.speed
+    this.x -= world.params.speed * deltaTime
 
     if (this.getBounds().right <= 0) {
       world.removeActor(this)

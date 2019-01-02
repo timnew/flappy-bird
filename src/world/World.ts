@@ -3,29 +3,16 @@ const debug = createDebug('app:World')
 
 import Player from './Player'
 import Stage from '../engine/Stage'
-import { TopPipe, BottomPipe, Pipe } from './Pipe'
 import CollisionDetector from './CollisionDetector'
 import PipeGenerator from './PipeGenerator'
+import ParameterController from './ParameterController'
 
 export default class World extends Stage<World> {
-  readonly rasingForce = -30
-  readonly maxRasingSpeed = -30
-  readonly gravity = 5
-  readonly maxDroppingSpeed = 5
-  readonly maxRotation = Math.PI / 6
-
-  readonly maxPipeDistance = 100
-  readonly minGapSize = 60
-  readonly maxGapSize = 150
-  readonly minPipeTopMargin = 30
-  readonly minPipeBottomMargin = 30
-
-  private _speed: number = 1
-  get speed(): number {
-    return this._speed
-  }
+  readonly params: ParameterController = new ParameterController()
 
   setup() {
+    this.params.setup(this)
+
     this.addActor(new Player('player', this))
 
     this.playerControl.registerHumanControl('player', 'Space')

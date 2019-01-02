@@ -3,6 +3,7 @@ const debug = createDebug('app:Player')
 
 import World from './World'
 import Actor from '../engine/Actor'
+import ParameterController from './ParameterController'
 
 export type PlayerControlApi = () => void
 
@@ -49,31 +50,33 @@ class Player extends Actor<World> {
   }
 
   update(deltaTime: number, world: World) {
+    const params = world.params
+
     switch (this.state) {
       case PlayerState.Drop:
-        if (this.velocity < world.maxDroppingSpeed) {
-          this.velocity += world.gravity
+        if (this.velocity < params.maxDroppingSpeed) {
+          this.velocity += params.gravity * deltaTime
         }
-        this.updateSprite(world)
+        this.updateSprite(deltaTime, params)
         break
       case PlayerState.Jump:
         this.state = PlayerState.Drop
-        this.velocity = world.rasingForce
-        this.updateSprite(world)
+        this.velocity = -params.raisingSpeed * deltaTime
+        this.updateSprite(deltaTime, params)
         break
       case PlayerState.Kill:
         this.state = PlayerState.Dead
         this.tint = 0xff00cccc
         break
       case PlayerState.Dead:
-        if (this.velocity < world.maxDroppingSpeed) {
-          this.velocity += world.gravity
+        if (this.velocity < params.maxDroppingSpeed) {
+          this.velocity += params.gravity * deltaTime
         }
 
-        this.updateSprite(world)
+        this.updateSprite(deltaTime, params)
 
         if (this.y >= this.minY) {
-          this.x -= world.speed
+          this.x -= params.speed * deltaTime
         }
 
         if (this.x <= this.vanishX) {
@@ -83,13 +86,11 @@ class Player extends Actor<World> {
     }
   }
 
-  private updateSprite({
-    screen,
-    maxRasingSpeed,
-    maxDroppingSpeed,
-    maxRotation
-  }: World) {
-    this.y += this.velocity
+  private updateSprite(
+    deltaTime: number,
+    { maxRaisingSpeed, maxDroppingSpeed, maxRotation }: ParameterController
+  ) {
+    this.y += this.velocity * deltaTime
 
     if (this.y < this.minY) {
       this.y = this.minY
@@ -98,12 +99,19 @@ class Player extends Actor<World> {
     }
 
     if (this.velocity < 0) {
-      this.rotation = (this.velocity / maxRasingSpeed) * maxRotation
+      this.rotation = (this.velocity / -maxRaisingSpeed) * maxRotation
     } else if (this.velocity > 0) {
       this.rotation = (this.velocity / maxDroppingSpeed) * maxRotation
     } else {
       this.rotation = 0
     }
+
+    debug(
+      'y: %d v: %d r: %d',
+      this.y,
+      this.velocity,
+      (this.rotation / Math.PI) * 180
+    )
   }
 
   jump() {
