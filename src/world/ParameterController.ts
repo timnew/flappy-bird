@@ -49,11 +49,11 @@ export default class ParameterController {
 
     // Vertical
 
-    this.gravity = this.birdHeight * 60
+    this.gravity = this.birdHeight * 80
 
     this.maxDroppingSpeed = this.gravity
 
-    this.raisingSpeed = this.birdHeight * 3 * 60
+    this.raisingSpeed = this.birdHeight * 15
     this.maxRaisingSpeed = this.raisingSpeed
 
     this.maxRotation = Math.PI / 3
@@ -64,12 +64,12 @@ export default class ParameterController {
 
     const minFeasibleGapSize =
       ((this.pipeWidth + this.birdWidth) / this.speed) *
-      Math.min(this.maxDroppingSpeed, this.maxRaisingSpeed, this.gravity)
+      Math.min(this.maxDroppingSpeed, this.maxRaisingSpeed, this.gravity / 60)
 
-    this.minGapSize = minFeasibleGapSize * 4
-    this.maxGapSize = minFeasibleGapSize * 6
+    this.minGapSize = minFeasibleGapSize * 6
+    this.maxGapSize = minFeasibleGapSize * 10
 
-    this.maxPipeDistance = this.speed * 2
-    this.minPipeDistance = this.speed * 1
+    this.maxPipeDistance = this.pipeWidth * 6
+    this.minPipeDistance = this.pipeWidth * 4
   }
 }

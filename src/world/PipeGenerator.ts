@@ -12,7 +12,7 @@ export default class PipeGenerator implements GameObject<World> {
 
   readonly initialX: number
   get distanceThreshold(): number {
-    return this.world.params.speed
+    return this.world.params.minPipeDistance
   }
 
   private _distance: number = 0
@@ -28,6 +28,7 @@ export default class PipeGenerator implements GameObject<World> {
   update(deltaTime: number, world: World): void {
     this._distance -= world.params.speed * deltaTime
     if (this.distance < this.distanceThreshold) {
+      debug('Generating Pipe: %d < %d', this.distance, this.distanceThreshold)
       this.generatePipe()
       this.generateDistance()
     }
@@ -54,9 +55,10 @@ export default class PipeGenerator implements GameObject<World> {
   }
 
   generateDistance() {
-    this._distance = randomInt(
+    this._distance += randomInt(
       this.world.params.maxPipeDistance,
       this.world.params.minPipeDistance
     )
+    debug('new distance: %d', this.distance)
   }
 }

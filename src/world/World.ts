@@ -17,7 +17,7 @@ export default class World extends Stage<World> {
 
     this.playerControl.registerHumanControl('player', 'Space')
     this.game.keyboard
-      .onKey('KeyR')
+      .onKey('KeyQ')
       .onEvent('keyDownSingle', () => this.revive())
 
     this.addController(new CollisionDetector(this))

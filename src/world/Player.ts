@@ -61,7 +61,7 @@ class Player extends Actor<World> {
         break
       case PlayerState.Jump:
         this.state = PlayerState.Drop
-        this.velocity = -params.raisingSpeed * deltaTime
+        this.velocity = -params.raisingSpeed
         this.updateSprite(deltaTime, params)
         break
       case PlayerState.Kill:
@@ -99,7 +99,7 @@ class Player extends Actor<World> {
     }
 
     if (this.velocity < 0) {
-      this.rotation = (this.velocity / -maxRaisingSpeed) * maxRotation
+      this.rotation = (this.velocity / maxRaisingSpeed) * maxRotation
     } else if (this.velocity > 0) {
       this.rotation = (this.velocity / maxDroppingSpeed) * maxRotation
     } else {
