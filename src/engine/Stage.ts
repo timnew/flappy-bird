@@ -5,16 +5,16 @@ import { Container, Rectangle, loaders, DisplayObject } from 'pixi.js'
 import Game from './Game'
 import GameObject from './GameObject'
 import PlayerControl from './PlayerControl'
-import Actor from './Actor'
 import { MultiDictionary } from 'typescript-collections'
-import { StructuredName } from './SturcturedName'
+import FullName from './FullName'
 
 export default abstract class Stage<T extends Stage<T>> extends Container
   implements GameObject<Game> {
-  readonly name: string
+  readonly fullName: FullName
   constructor(name: string, readonly game: Game) {
     super()
-    this.name = `Stage:${name}`
+    this.fullName = new FullName('Stage', name)
+    this.name = this.fullName.toString()
   }
 
   get screen(): Rectangle {
@@ -39,50 +39,43 @@ export default abstract class Stage<T extends Stage<T>> extends Container
   > = new MultiDictionary()
 
   addObject(obj: GameObject<T>) {
-    const name = StructuredName.parse(obj.name)
-
     if (obj instanceof DisplayObject) {
-      this.addActor(name, obj)
+      this.addActor(obj)
     } else {
-      this.addController(name, obj)
+      this.addController(obj)
     }
   }
 
   removeObject(obj: GameObject<T>) {
-    const name = StructuredName.parse(obj.name)
-
     if (obj instanceof DisplayObject) {
-      this.removeActor(name, obj)
+      this.removeActor(obj)
     } else {
-      this.removeController(name, obj)
+      this.removeController(obj)
     }
   }
 
-  private addActor(name: StructuredName, actor: GameObject<T> & DisplayObject) {
+  addActor(actor: GameObject<T> & DisplayObject) {
     debug('Add actor: %s', actor.name)
-    this.actors.setValue(name.type, actor)
+    this.actors.setValue(actor.fullName.type, actor)
     this.addChildAt(actor as DisplayObject, 0)
   }
 
-  private addController(name: StructuredName, controller: GameObject<T>) {
-    debug('Add controller: %s', controller.name)
-    this.controllers.setValue(name.type, controller)
+  private addController(controller: GameObject<T>) {
+    debug('Add controller: %s', controller.fullName)
+    this.controllers.setValue(controller.fullName.type, controller)
   }
 
-  private removeActor(
-    name: StructuredName,
-    actor: GameObject<T> & DisplayObject
-  ) {
+  private removeActor(actor: GameObject<T> & DisplayObject) {
     debug('Remove actor: %s', actor.name)
 
-    this.actors.remove(name.type, actor)
+    this.actors.remove(actor.fullName.type, actor)
     this.removeChild(actor)
   }
 
-  private removeController(name: StructuredName, controller: GameObject<T>) {
-    debug('Remove controller: %s', controller.name)
+  private removeController(controller: GameObject<T>) {
+    debug('Remove controller: %s', controller.fullName)
 
-    this.controllers.remove(name.type, controller)
+    this.controllers.remove(controller.fullName.name, controller)
   }
 
   abstract setup(): void

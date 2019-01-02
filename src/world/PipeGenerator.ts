@@ -5,10 +5,10 @@ import GameObject from '../engine/GameObject'
 import World from './World'
 import { randomInt } from '../engine/randomGenerator'
 import { TopPipe, BottomPipe } from './Pipe'
+import FullName from '../engine/FullName'
 
 export default class PipeGenerator implements GameObject<World> {
-  readonly name: string = 'PipeGenerator'
-  readonly type: string = 'PipeGenerator'
+  readonly fullName = FullName.singleton('PipeGenerator')
 
   readonly initialX: number
   get distanceThreshold(): number {

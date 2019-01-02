@@ -5,7 +5,6 @@ const debug = createDebug('app:PlayerControl')
 import Game from './Game'
 import { EventEmitter } from 'events'
 import Bird from '../world/Bird'
-import { StructuredName } from './SturcturedName'
 
 export default class PlayerControl {
   private emitter: EventEmitter = new EventEmitter()
@@ -26,8 +25,7 @@ export default class PlayerControl {
   }
 
   registerBird(bird: Bird) {
-    const name = StructuredName.parse(bird.name)
-    debug(`Register player %s`, name.name)
-    this.emitter.on(name.name, bird.controlApi)
+    debug(`Register player %s`, bird.fullName.name)
+    this.emitter.on(bird.fullName.name, bird.controlApi)
   }
 }

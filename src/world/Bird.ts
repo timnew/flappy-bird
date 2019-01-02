@@ -4,6 +4,7 @@ const debug = createDebug('app:Bird')
 import World from './World'
 import Actor from '../engine/Actor'
 import ParameterController from './ParameterController'
+import FullName from '../engine/FullName'
 
 export type PlayerControlApi = () => void
 
@@ -11,7 +12,7 @@ export default class Bird extends Actor<World> {
   readonly controlApi: PlayerControlApi
 
   constructor(name: string, world: World) {
-    super('Bird', name, world.resources.bird.texture)
+    super(new FullName('Bird', name), world.resources.bird.texture)
 
     this.anchor.set(0.5)
 

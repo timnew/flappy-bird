@@ -12,7 +12,7 @@ export default class World extends Stage<World> {
   readonly params: ParameterController = new ParameterController()
 
   constructor(game: Game) {
-    super('World', game)
+    super('Game', game)
     ;(window as any).world = this
   }
 

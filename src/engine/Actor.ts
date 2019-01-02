@@ -1,13 +1,12 @@
 import { Sprite, Rectangle, Point, Texture, Container } from 'pixi.js'
 import GameObject from './GameObject'
+import FullName from './FullName'
 
 export default abstract class Actor<TStage> extends Sprite
   implements GameObject<TStage> {
-  readonly name: string
-
-  constructor(type: string, name: string, texture: Texture) {
+  constructor(readonly fullName: FullName, texture: Texture) {
     super(texture)
-    this.name = `${type}:${name}`
+    this.name = this.fullName.toString()
   }
 
   abstract update(deltaTime: number, stage: TStage): void

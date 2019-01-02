@@ -1,5 +1,6 @@
 import World from './World'
 import Actor from '../engine/Actor'
+import FullName from '../engine/FullName'
 
 let instanceCount = 0
 export abstract class Pipe extends Actor<World> {
@@ -10,7 +11,10 @@ export abstract class Pipe extends Actor<World> {
     height: number,
     x: number
   ) {
-    super('Pipe', String(instanceCount), world.resources[assetName].texture)
+    super(
+      new FullName('Pipe', String(instanceCount)),
+      world.resources[assetName].texture
+    )
 
     this.anchor.set(0, anchor)
 

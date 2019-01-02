@@ -5,10 +5,10 @@ import GameObject from '../engine/GameObject'
 import World from './World'
 import { Rectangle } from 'pixi.js'
 import Bird from './Bird'
+import FullName from '../engine/FullName'
 
 export default class CollisionDetector implements GameObject<World> {
-  readonly name: string = 'Collision Detector'
-  readonly type: string = 'CollisionDetector'
+  readonly fullName = FullName.singleton('CollisionDetector')
 
   readonly collisionBox: Rectangle
 

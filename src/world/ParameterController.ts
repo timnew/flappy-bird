@@ -1,6 +1,10 @@
 import World from './World'
+import GameObject from '../engine/GameObject'
+import FullName from '../engine/FullName'
 
-export default class ParameterController {
+export default class ParameterController implements GameObject<World> {
+  readonly fullName = FullName.singleton('ParameterController')
+
   constructor() {
     ;(window as any).params = this
   }
@@ -72,4 +76,6 @@ export default class ParameterController {
     this.maxPipeDistance = this.pipeWidth * 6
     this.minPipeDistance = this.pipeWidth * 4
   }
+
+  update(deltaTime: number, stage: World): void {}
 }
