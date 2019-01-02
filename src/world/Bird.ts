@@ -10,8 +10,8 @@ export type PlayerControlApi = () => void
 export default class Bird extends Actor<World> {
   readonly controlApi: PlayerControlApi
 
-  constructor(readonly name: string, world: World) {
-    super('Bird', world.resources.bird.texture)
+  constructor(name: string, world: World) {
+    super('Bird', name, world.resources.bird.texture)
 
     this.anchor.set(0.5)
 
@@ -80,7 +80,7 @@ export default class Bird extends Actor<World> {
         }
 
         if (this.x <= this.vanishX) {
-          world.removeActor(this)
+          world.removeObject(this)
         }
         break
     }

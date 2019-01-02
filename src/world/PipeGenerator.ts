@@ -48,8 +48,8 @@ export default class PipeGenerator implements GameObject<World> {
 
     debug('Generate Pipe: [%d, %d +- %d]', x, gapPosition, halfGapSize)
 
-    this.world.addActor(new TopPipe(this.world, gapPosition - halfGapSize, x))
-    this.world.addActor(
+    this.world.addObject(new TopPipe(this.world, gapPosition - halfGapSize, x))
+    this.world.addObject(
       new BottomPipe(this.world, gapPosition + halfGapSize, x)
     )
   }

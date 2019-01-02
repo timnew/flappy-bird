@@ -10,13 +10,13 @@ export abstract class Pipe extends Actor<World> {
     height: number,
     x: number
   ) {
-    super('Pipe', world.resources[assetName].texture)
+    super('Pipe', String(instanceCount), world.resources[assetName].texture)
+
     this.anchor.set(0, anchor)
 
     this.y = height
     this.x = x
 
-    this.name = `${assetName} ${instanceCount}`
     instanceCount++
   }
 
@@ -24,7 +24,7 @@ export abstract class Pipe extends Actor<World> {
     this.x -= world.params.speed * deltaTime
 
     if (this.getBounds().right <= 0) {
-      world.removeActor(this)
+      world.removeObject(this)
     }
   }
 }

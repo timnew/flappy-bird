@@ -1,16 +1,21 @@
 import createDebug from 'debug'
 const debug = createDebug('app:Stage')
 
-import { Container, Rectangle, loaders } from 'pixi.js'
+import { Container, Rectangle, loaders, DisplayObject } from 'pixi.js'
 import Game from './Game'
 import GameObject from './GameObject'
 import PlayerControl from './PlayerControl'
 import Actor from './Actor'
 import { MultiDictionary } from 'typescript-collections'
+import { StructuredName } from './SturcturedName'
 
 export default abstract class Stage<T extends Stage<T>> extends Container
   implements GameObject<Game> {
-  readonly type: string = 'Stage'
+  readonly name: string
+  constructor(name: string, readonly game: Game) {
+    super()
+    this.name = `Stage:${name}`
+  }
 
   get screen(): Rectangle {
     return this.game.screen
@@ -24,38 +29,60 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     return this.game.playerControl
   }
 
-  readonly actors: MultiDictionary<string, Actor<T>> = new MultiDictionary()
+  readonly actors: MultiDictionary<
+    string,
+    GameObject<T> & DisplayObject
+  > = new MultiDictionary()
   readonly controllers: MultiDictionary<
     string,
     GameObject<T>
   > = new MultiDictionary()
 
-  constructor(readonly game: Game) {
-    super()
+  addObject(obj: GameObject<T>) {
+    const name = StructuredName.parse(obj.name)
+
+    if (obj instanceof DisplayObject) {
+      this.addActor(name, obj)
+    } else {
+      this.addController(name, obj)
+    }
   }
 
-  addActor(actor: Actor<T>) {
-    debug('Add actor: %s: %s', actor.name, actor.type)
-    this.actors.setValue(actor.type, actor)
-    this.addChildAt(actor, 0)
+  removeObject(obj: GameObject<T>) {
+    const name = StructuredName.parse(obj.name)
+
+    if (obj instanceof DisplayObject) {
+      this.removeActor(name, obj)
+    } else {
+      this.removeController(name, obj)
+    }
   }
 
-  addController(object: GameObject<T>) {
-    debug('Add controller: %s: %s', object.name, object.type)
-    this.controllers.setValue(object.type, object)
+  private addActor(name: StructuredName, actor: GameObject<T> & DisplayObject) {
+    debug('Add actor: %s', actor.name)
+    this.actors.setValue(name.type, actor)
+    this.addChildAt(actor as DisplayObject, 0)
   }
 
-  removeActor(actor: Actor<T>) {
-    debug('Remove actor: %s: %s', actor.name, actor.type)
+  private addController(name: StructuredName, controller: GameObject<T>) {
+    debug('Add controller: %s', controller.name)
+    this.controllers.setValue(name.type, controller)
+  }
 
-    this.actors.remove(actor.type, actor)
+  private removeActor(
+    name: StructuredName,
+    actor: GameObject<T> & DisplayObject
+  ) {
+    debug('Remove actor: %s', actor.name)
+
+    this.actors.remove(name.type, actor)
     this.removeChild(actor)
   }
 
-  removeController(object: GameObject<T>) {
-    debug('Remove controller: %s: %s', object.name, object.type)
+  private removeController(name: StructuredName, controller: GameObject<T>) {
+    debug('Remove controller: %s', controller.name)
 
-    this.controllers.remove(object.type, object)
+    this.controllers.remove(name.type, controller)
   }
 
   abstract setup(): void
@@ -69,8 +96,8 @@ export default abstract class Stage<T extends Stage<T>> extends Container
       obj.update(deltaTime, stage)
     })
 
-    this.updateStage()
+    this.updateOthers()
   }
 
-  updateStage() {}
+  updateOthers() {}
 }

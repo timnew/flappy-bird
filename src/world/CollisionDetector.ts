@@ -1,3 +1,6 @@
+import createDebug from 'debug'
+const debug = createDebug('app:CollisionDetector')
+
 import GameObject from '../engine/GameObject'
 import World from './World'
 import { Rectangle } from 'pixi.js'
@@ -23,9 +26,15 @@ export default class CollisionDetector implements GameObject<World> {
       .getValue('Pipe')
       .filter(pipe => pipe.isCollidedOn(this.collisionBox))
 
+    if (harmfulPipes.length == 0) {
+      return
+    }
+
+    debug('Harmful Pipes: %j', harmfulPipes)
+
     world.actors
       .getValue('Bird')
-      .filter(brid => harmfulPipes.some(pipe => bird.isCollidedOn(pipe)))
+      .filter(bird => harmfulPipes.some(pipe => bird.isCollidedOn(pipe)))
       .forEach(bird => (bird as Bird).kill())
   }
 }

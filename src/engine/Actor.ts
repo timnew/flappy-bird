@@ -1,27 +1,14 @@
-import { Sprite, Rectangle, Point, Texture } from 'pixi.js'
+import { Sprite, Rectangle, Point, Texture, Container } from 'pixi.js'
 import GameObject from './GameObject'
 
 export default abstract class Actor<TStage> extends Sprite
   implements GameObject<TStage> {
-  abstract update(deltaTime: number, stage: TStage): void
+  readonly name: string
 
-  constructor(readonly type: string, texture: Texture) {
+  constructor(type: string, name: string, texture: Texture) {
     super(texture)
+    this.name = `${type}:${name}`
   }
 
-  isCollidedOn(another: Sprite | Rectangle | Point): boolean {
-    if (another instanceof Sprite) {
-      return this.getBounds().overlaps(another.getBounds())
-    }
-
-    if (another instanceof Rectangle) {
-      return this.getBounds().overlaps(another)
-    }
-
-    if (another instanceof Point) {
-      return this.getBounds().contains(another.x, another.y)
-    }
-
-    throw Error('Unknown Type')
-  }
+  abstract update(deltaTime: number, stage: TStage): void
 }
