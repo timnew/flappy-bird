@@ -28,4 +28,9 @@ export default class PlayerControl {
     debug(`Register player %s`, bird.fullName.name)
     this.emitter.on(bird.fullName.name, bird.controlApi)
   }
+
+  removeBird(bird: Bird) {
+    debug(`Remove player %s`, bird.fullName.name)
+    this.emitter.removeListener(bird.fullName.name, bird.controlApi)
+  }
 }

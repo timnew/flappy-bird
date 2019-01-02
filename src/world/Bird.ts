@@ -100,6 +100,10 @@ export default class Bird extends Actor<World> {
     }
   }
 
+  deregister() {
+    this.world.playerControl.removeBird(this)
+  }
+
   trigger() {
     this.state.onTrigger()
   }
@@ -164,6 +168,8 @@ class BirdDeadState extends BirdState {
     super(bird, 'Dead', false)
 
     bird.tint = 0xff00cccc
+
+    bird.deregister()
 
     bird.world.tryRevive(bird)
   }
