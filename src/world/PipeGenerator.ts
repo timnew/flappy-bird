@@ -4,8 +4,8 @@ const debug = createDebug('app:PipeGenerator')
 import GameObject from '../engine/GameObject'
 import World from './World'
 import { randomInt } from '../engine/randomGenerator'
-import { TopPipe, BottomPipe } from './Pipe'
 import FullName from '../engine/FullName'
+import PipeGate from './PipeGate'
 
 export default class PipeGenerator implements GameObject<World> {
   readonly fullName = FullName.singleton('PipeGenerator')
@@ -48,10 +48,7 @@ export default class PipeGenerator implements GameObject<World> {
 
     debug('Generate Pipe: [%d, %d +- %d]', x, gapPosition, halfGapSize)
 
-    this.world.addObject(new TopPipe(this.world, gapPosition - halfGapSize, x))
-    this.world.addObject(
-      new BottomPipe(this.world, gapPosition + halfGapSize, x)
-    )
+    this.world.addObject(new PipeGate(this.world, x, gapPosition, halfGapSize))
   }
 
   generateDistance() {

@@ -4,7 +4,7 @@ import FullName from './FullName'
 
 export abstract class ContainerActor<TStage> extends Container
   implements GameObject<TStage> {
-  constructor(readonly fullName: FullName, name: string) {
+  constructor(readonly fullName: FullName) {
     super()
     this.name = fullName.toString()
   }
