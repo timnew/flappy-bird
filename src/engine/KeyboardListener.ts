@@ -81,7 +81,7 @@ export default class KeyboardListener {
   }
 
   onKey(code: string): KeyBinding {
-    if (this.isListening(code)) {
+    if (!this.isListening(code)) {
       this.keyBindings.setValue(code, new KeyBinding(code))
     }
 

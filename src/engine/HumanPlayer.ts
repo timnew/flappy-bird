@@ -5,7 +5,7 @@ export default class HumanPlayer extends Player {
   constructor(readonly world: World, name: string, readonly keyCode: string) {
     super(world, name)
 
-    world.game.keyboard.onKey(keyCode).onEvent('keyDownSingle', () => {
+    world.keyboard.onKey(keyCode).onEvent('keyDownSingle', () => {
       this.flap()
     })
 
@@ -13,7 +13,7 @@ export default class HumanPlayer extends Player {
   }
 
   dispose() {
-    this.world.game.keyboard.silence(this.keyCode)
+    this.world.keyboard.silence(this.keyCode)
     this.debug('Disposed')
   }
 }

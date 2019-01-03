@@ -6,10 +6,12 @@ import Game from './Game'
 import GameObject from './GameObject'
 import { MultiDictionary } from 'typescript-collections'
 import FullName from './FullName'
+import KeyboardListener from './KeyboardListener'
 
 export default abstract class Stage<T extends Stage<T>> extends Container
   implements GameObject<Game> {
   readonly fullName: FullName
+
   constructor(name: string, readonly game: Game) {
     super()
     this.fullName = new FullName('Stage', name)
@@ -22,6 +24,10 @@ export default abstract class Stage<T extends Stage<T>> extends Container
 
   get resources(): loaders.ResourceDictionary {
     return this.game.resources
+  }
+
+  get keyboard(): KeyboardListener {
+    return this.game.keyboard
   }
 
   readonly actors: MultiDictionary<
