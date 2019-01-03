@@ -1,5 +1,9 @@
 import Player from './Player'
 import World from '../world/World'
+import Bird from '../world/Bird'
+import { Text } from 'pixi.js'
+import NameLabel from '../world/NameLabel'
+import { ScoreLabel } from '../world/ScoreLabel'
 
 export default class HumanPlayer extends Player {
   constructor(readonly world: World, name: string, readonly keyCode: string) {
@@ -10,6 +14,19 @@ export default class HumanPlayer extends Player {
     })
 
     this.debug('Listening on key %s', keyCode)
+  }
+
+  protected setupNameLabel(bird: Bird): NameLabel {
+    const label = super.setupNameLabel(bird)
+
+    label.alpha = 0.7
+
+    return label
+  }
+
+  protected setupScoreLabel(bird: Bird): ScoreLabel {
+    this.scoreLabel = this.world.scoreLabel
+    return this.scoreLabel
   }
 
   dispose() {

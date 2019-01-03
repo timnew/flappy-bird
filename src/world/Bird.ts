@@ -2,8 +2,7 @@ import createDebug from 'debug'
 const debug = createDebug('app:Bird')
 
 import World from './World'
-import Actor from '../engine/Actor'
-import { Rectangle, Sprite } from 'pixi.js'
+import { Rectangle, Sprite, Text, TextStyle } from 'pixi.js'
 import Player from '../engine/Player'
 import { ContainerActor } from '../engine/ContainerActor'
 
@@ -17,14 +16,7 @@ export default class Bird extends ContainerActor<World> {
   ) {
     super(player.fullName)
 
-    this.birdSprite = new Sprite(world.resources.bird.texture)
-
-    this.birdSprite.anchor.set(0.5)
-
-    this.birdSprite.x = 0
-    this.birdSprite.y = 0
-
-    this.addChild(this.birdSprite)
+    this.birdSprite = this.createBirdSprite(world)
 
     const { screen } = world
 
@@ -49,7 +41,20 @@ export default class Bird extends ContainerActor<World> {
       this.state = new BirdLiveState(this)
     }
 
-    player.birdLeash = this.flap.bind(this)
+    player.attach(this)
+  }
+
+  private createBirdSprite(world: World): Sprite {
+    const birdSprite = new Sprite(world.resources.bird.texture)
+
+    birdSprite.anchor.set(0.5)
+
+    birdSprite.x = 0
+    birdSprite.y = 0
+
+    this.addChild(birdSprite)
+
+    return birdSprite
   }
 
   readonly moveBounds: Rectangle
@@ -59,6 +64,16 @@ export default class Bird extends ContainerActor<World> {
 
   get isLive(): boolean {
     return this.state.isLive
+  }
+
+  onLeash(command: string, data: any) {
+    debug('Command: %s(%j)', command, data)
+
+    switch (command) {
+      case 'flap':
+        this.flap()
+        break
+    }
   }
 
   update(deltaTime: number, world: World) {
@@ -99,16 +114,17 @@ export default class Bird extends ContainerActor<World> {
     const { maxRaisingSpeed, maxDroppingSpeed, maxRotation } = this.world.params
 
     if (this.velocity < 0) {
-      this.rotation = (this.velocity / maxRaisingSpeed) * maxRotation
+      this.birdSprite.rotation = (this.velocity / maxRaisingSpeed) * maxRotation
     } else if (this.velocity > 0) {
-      this.rotation = (this.velocity / maxDroppingSpeed) * maxRotation
+      this.birdSprite.rotation =
+        (this.velocity / maxDroppingSpeed) * maxRotation
     } else {
-      this.rotation = 0
+      this.birdSprite.rotation = 0
     }
   }
 
   dispose() {
-    this.player.birdLeash = null
+    this.player.detach(this)
   }
 
   flap() {

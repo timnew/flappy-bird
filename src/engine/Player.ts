@@ -3,9 +3,12 @@ import createDebug, { IDebugger } from 'debug'
 import FullName from './FullName'
 import World from '../world/World'
 import GameObject from './GameObject'
-import { PlayerScore } from '../observer/GameObserver'
+import Bird from '../world/Bird'
+import { Text } from 'pixi.js'
+import NameLabel from '../world/NameLabel'
+import { AttachedScoreLabel, ScoreLabel } from '../world/ScoreLabel'
 
-export type BirdLeash = () => void
+export type BirdLeash = (command: string, data: any) => void
 
 export interface PlayerVisual {
   speed: number
@@ -15,6 +18,9 @@ export interface PlayerVisual {
 }
 
 export default class Player implements GameObject<World> {
+  get name() {
+    return this.fullName.name
+  }
   readonly fullName: FullName
   readonly debug: IDebugger
 
@@ -24,6 +30,40 @@ export default class Player implements GameObject<World> {
     this.debug = createDebug(this.fullName.fullName)
 
     this.reportScore()
+  }
+
+  attach(bird: Bird) {
+    this.birdLeash = bird.onLeash.bind(bird)
+
+    this.setupNameLabel(bird)
+    this.setupScoreLabel(bird)
+
+    this.renderScore()
+  }
+
+  detach(bird: Bird) {
+    this.birdLeash = null
+  }
+
+  protected setupNameLabel(bird: Bird): NameLabel {
+    const text = `${this.fullName.name}:${this.death}`
+    const label = new NameLabel(text, bird.birdSprite)
+    bird.addChild(label)
+    return label
+  }
+
+  protected scoreLabel: ScoreLabel | null = null
+
+  protected setupScoreLabel(bird: Bird): ScoreLabel {
+    const label = new AttachedScoreLabel(bird)
+    this.scoreLabel = label
+    return label
+  }
+
+  protected renderScore() {
+    if (this.scoreLabel != null) {
+      this.scoreLabel.renderScore(this)
+    }
   }
 
   score: number = 0
@@ -39,17 +79,21 @@ export default class Player implements GameObject<World> {
 
   birdLeash: BirdLeash | null = null
 
+  instructBird(command: string, data: any = null) {
+    if (this.birdLeash != null) {
+      this.birdLeash(command, data)
+    } else {
+      this.debug('Player not yet registered')
+    }
+  }
+
   onGameStart() {
     this.debug('Game start')
   }
 
   flap() {
     this.debug('Flap Bird')
-    if (this.birdLeash != null) {
-      this.birdLeash()
-    } else {
-      this.debug('Player not yet registered')
-    }
+    this.instructBird('flap')
   }
 
   onIncreaseDistance(deltaDistance: number) {
@@ -63,7 +107,10 @@ export default class Player implements GameObject<World> {
   }
 
   private updateScore(report: boolean = true) {
-    this.score = this.distance + this.pipeCount * 5
+    this.score = this.distance + this.pipeCount * 500
+
+    this.renderScore()
+
     if (report) {
       this.debug(
         'Score: d: %d p: %d s: %d',
