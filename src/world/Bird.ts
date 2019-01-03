@@ -3,18 +3,28 @@ const debug = createDebug('app:Bird')
 
 import World from './World'
 import Actor from '../engine/Actor'
-import { Rectangle } from 'pixi.js'
+import { Rectangle, Sprite } from 'pixi.js'
 import Player from '../engine/Player'
+import { ContainerActor } from '../engine/ContainerActor'
 
-export default class Bird extends Actor<World> {
+export default class Bird extends ContainerActor<World> {
+  readonly birdSprite: Sprite
+
   constructor(
     readonly player: Player,
     readonly world: World,
     isPending: boolean = false
   ) {
-    super(player.fullName, world.resources.bird.texture)
+    super(player.fullName)
 
-    this.anchor.set(0.5)
+    this.birdSprite = new Sprite(world.resources.bird.texture)
+
+    this.birdSprite.anchor.set(0.5)
+
+    this.birdSprite.x = 0
+    this.birdSprite.y = 0
+
+    this.addChild(this.birdSprite)
 
     const { screen } = world
 
@@ -136,7 +146,7 @@ class BirdLiveState extends BirdState {
     super(bird, 'Live', true)
 
     bird.alpha = 1
-    bird.tint = 0xffffff
+    bird.birdSprite.tint = 0xffffff
   }
 
   onUpdate(deltaTime: number): void {
@@ -164,7 +174,7 @@ class BirdDeadState extends BirdState {
   constructor(bird: Bird) {
     super(bird, 'Dead', false)
 
-    bird.tint = 0xff00cccc
+    bird.birdSprite.tint = 0xff00cccc
 
     bird.dispose()
 
