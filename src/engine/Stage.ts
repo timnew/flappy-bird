@@ -4,7 +4,6 @@ const debug = createDebug('app:Stage')
 import { Container, Rectangle, loaders, DisplayObject } from 'pixi.js'
 import Game from './Game'
 import GameObject from './GameObject'
-import PlayerControl from './PlayerControl'
 import { MultiDictionary } from 'typescript-collections'
 import FullName from './FullName'
 
@@ -23,10 +22,6 @@ export default abstract class Stage<T extends Stage<T>> extends Container
 
   get resources(): loaders.ResourceDictionary {
     return this.game.resources
-  }
-
-  get playerControl(): PlayerControl {
-    return this.game.playerControl
   }
 
   readonly actors: MultiDictionary<
@@ -64,19 +59,19 @@ export default abstract class Stage<T extends Stage<T>> extends Container
     }
   }
 
-  private addController(controller: GameObject<T>) {
+  addController(controller: GameObject<T>) {
     debug('Add controller: %s', controller.fullName)
     this.controllers.setValue(controller.fullName.type, controller)
   }
 
-  private removeActor(actor: GameObject<T> & DisplayObject) {
+  removeActor(actor: GameObject<T> & DisplayObject) {
     debug('Remove actor: %s', actor.name)
 
     this.actors.remove(actor.fullName.type, actor)
     this.removeChild(actor)
   }
 
-  private removeController(controller: GameObject<T>) {
+  removeController(controller: GameObject<T>) {
     debug('Remove controller: %s', controller.fullName)
 
     this.controllers.remove(controller.fullName.name, controller)

@@ -1,6 +1,5 @@
 import { Application, Rectangle, loaders, ticker } from 'pixi.js'
 import KeyboardListener from './KeyboardListener'
-import PlayerControl from './PlayerControl'
 import World from '../world/World'
 
 class Game {
@@ -24,8 +23,6 @@ class Game {
   }
 
   readonly keyboard: KeyboardListener = new KeyboardListener()
-
-  readonly playerControl: PlayerControl = new PlayerControl(this)
 
   setup() {
     this.keyboard.subscribe()

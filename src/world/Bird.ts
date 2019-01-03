@@ -3,16 +3,16 @@ const debug = createDebug('app:Bird')
 
 import World from './World'
 import Actor from '../engine/Actor'
-import FullName from '../engine/FullName'
 import { Rectangle } from 'pixi.js'
-
-export type PlayerControlApi = () => void
+import Player from '../engine/Player'
 
 export default class Bird extends Actor<World> {
-  readonly controlApi: PlayerControlApi
-
-  constructor(name: string, readonly world: World, isPending: boolean = false) {
-    super(new FullName('Bird', name), world.resources.bird.texture)
+  constructor(
+    readonly player: Player,
+    readonly world: World,
+    isPending: boolean = false
+  ) {
+    super(player.fullName, world.resources.bird.texture)
 
     this.anchor.set(0.5)
 
@@ -33,16 +33,13 @@ export default class Bird extends Actor<World> {
 
     this.velocity = 0
 
-    this.controlApi = this.trigger.bind(this)
-
     if (isPending) {
       this.state = new BirdPendingState(this)
     } else {
       this.state = new BirdLiveState(this)
     }
 
-    world.playerControl.registerBird(this)
-    ;(window as any).bird = this
+    player.birdLeash = this.flap.bind(this)
   }
 
   readonly moveBounds: Rectangle
@@ -100,12 +97,12 @@ export default class Bird extends Actor<World> {
     }
   }
 
-  deregister() {
-    this.world.playerControl.removeBird(this)
+  dispose() {
+    this.player.birdLeash = null
   }
 
-  trigger() {
-    this.state.onTrigger()
+  flap() {
+    this.state.onFlap()
   }
 
   kill() {
@@ -125,7 +122,7 @@ abstract class BirdState {
 
   onUpdate(deltaTime: number): void {}
 
-  onTrigger() {}
+  onFlap() {}
 
   onKill() {}
 
@@ -150,7 +147,7 @@ class BirdLiveState extends BirdState {
     bird.updateRotation()
   }
 
-  onTrigger() {
+  onFlap() {
     const bird = this.bird
     const { raisingSpeed } = bird.world.params
 
@@ -169,9 +166,9 @@ class BirdDeadState extends BirdState {
 
     bird.tint = 0xff00cccc
 
-    bird.deregister()
+    bird.dispose()
 
-    bird.world.tryRevive(bird)
+    bird.player.onDeath()
   }
 
   onUpdate(deltaTime: number): void {
@@ -190,8 +187,9 @@ class BirdPendingState extends BirdState {
     bird.alpha = 0.5
   }
 
-  onTrigger() {
+  onFlap() {
     new BirdLiveState(this.bird)
-    this.bird.trigger()
+    this.bird.player.onRevive()
+    this.bird.flap()
   }
 }

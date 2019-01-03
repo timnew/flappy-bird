@@ -3,6 +3,7 @@ import createDebug from 'debug'
 const debug = createDebug('app:KeyboardListener')
 
 import { EventEmitter } from 'events'
+import { Dictionary } from 'typescript-collections'
 
 export type KeyBindingHandler = (binding: KeyBinding) => void
 
@@ -66,29 +67,29 @@ export class KeyBinding {
   }
 }
 
-interface KeyBindingDictionary {
-  [code: string]: KeyBinding
-}
-
 export default class KeyboardListener {
-  private keyBindings: KeyBindingDictionary = {}
+  private keyBindings: Dictionary<string, KeyBinding> = new Dictionary()
   private readonly onKeyDown: KeyboardEventHandler
   private readonly onKeyUp: KeyboardEventHandler
 
   isListening(code: string) {
-    return this.keyBindings[code] != null
+    return this.keyBindings.containsKey(code)
+  }
+
+  silence(code: string) {
+    this.keyBindings.remove(code)
   }
 
   onKey(code: string): KeyBinding {
-    if (this.keyBindings[code] == null) {
-      this.keyBindings[code] = new KeyBinding(code)
+    if (this.isListening(code)) {
+      this.keyBindings.setValue(code, new KeyBinding(code))
     }
 
-    return this.keyBindings[code]
+    return this.keyBindings.getValue(code)!
   }
 
   private invokeIfListening(code: string, block: KeyBindingHandler) {
-    const binding = this.keyBindings[code]
+    const binding = this.keyBindings.getValue(code)
 
     if (binding != null) {
       block(binding)
