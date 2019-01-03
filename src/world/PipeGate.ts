@@ -2,6 +2,7 @@ import { ContainerActor } from '../engine/ContainerActor'
 import World from './World'
 import { Sprite, loaders, DisplayObject, Rectangle, Point } from 'pixi.js'
 import FullName from '../engine/FullName'
+import Bird from './Bird'
 
 export default class PipeGate extends ContainerActor<World> {
   static instanceCount: number = 0
@@ -44,10 +45,12 @@ export default class PipeGate extends ContainerActor<World> {
     this.topPipe.tint = this.bottomPipe.tint = value
   }
 
-  isCollidedOn(another: DisplayObject | Rectangle | Point): boolean {
+  testHit(bird: Bird): boolean {
+    const birdBounds = bird.getBounds()
+
     return (
-      this.topPipe.isCollidedOn(another) ||
-      this.bottomPipe.isCollidedOn(another)
+      this.topPipe.getBounds().overlaps(birdBounds) ||
+      this.bottomPipe.getBounds().overlaps(birdBounds)
     )
   }
 

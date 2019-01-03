@@ -83,7 +83,7 @@ export default class Judger implements GameObject<World> {
 
   detectCollision(pipe: PipeGate, world: World) {
     this.liveBirds
-      .filter(bird => pipe.isCollidedOn(bird))
+      .filter(bird => pipe.testHit(bird))
       .forEach(bird => {
         debug('Bird[%s] collides on Pipe[%s]', bird.name, pipe.name)
         ;(bird as Bird).kill()
