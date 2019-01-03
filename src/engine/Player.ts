@@ -3,6 +3,7 @@ import createDebug, { IDebugger } from 'debug'
 import FullName from './FullName'
 import World from '../world/World'
 import GameObject from './GameObject'
+import { PlayerScore } from '../observer/GameObserver'
 
 export type BirdLeash = () => void
 
@@ -19,7 +20,10 @@ export default class Player implements GameObject<World> {
 
   constructor(readonly world: World, name: string) {
     this.fullName = new FullName('Player', name)
+
     this.debug = createDebug(this.fullName.fullName)
+
+    this.reportScore()
   }
 
   score: number = 0
@@ -50,27 +54,32 @@ export default class Player implements GameObject<World> {
 
   onIncreaseDistance(deltaDistance: number) {
     this.distance += deltaDistance
-    this.updateScore()
+    this.updateScore(false)
   }
 
   onIncreasePipeCount() {
     this.pipeCount += 1
-    this.updateScore(true)
+    this.updateScore()
   }
 
-  private updateScore(log: boolean = false) {
+  private updateScore(report: boolean = true) {
     this.score = this.distance + this.pipeCount * 5
-    if (log) {
+    if (report) {
       this.debug(
         'Score: d: %d p: %d s: %d',
         this.distance,
         this.pipeCount,
         this.score
       )
+      this.reportScore()
     }
   }
 
   onDeath() {
+    this.death += 1
+
+    this.debug('Dead: $d', this.death)
+
     this.bestScore = Math.max(this.bestScore, this.score)
     this.score = 0
 
@@ -80,9 +89,7 @@ export default class Player implements GameObject<World> {
     this.bestPipeCount = Math.max(this.bestPipeCount, this.pipeCount)
     this.pipeCount = 0
 
-    this.death += 1
-
-    this.debug('Dead: $d', this.death)
+    this.updateScore()
   }
 
   onRevive() {
@@ -92,4 +99,19 @@ export default class Player implements GameObject<World> {
   onVisual(visual: PlayerVisual) {}
 
   update(deltaTime: number, stage: World): void {}
+
+  private reportScore() {
+    if (window.gameObserver != null) {
+      window.gameObserver.reportPlayerScore({
+        name: this.fullName.name,
+        score: this.score,
+        bestScore: this.bestScore,
+        distance: this.distance,
+        bestDistance: this.bestDistance,
+        pipeCount: this.pipeCount,
+        bestPipeCount: this.bestPipeCount,
+        death: this.death
+      })
+    }
+  }
 }
