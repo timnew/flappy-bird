@@ -3,20 +3,26 @@ const debug = createDebug('app:Judge')
 
 import GameObject from '../engine/GameObject'
 import World from './World'
-import Bird from './Bird'
+import Bird, { PendingCallback } from './Bird'
 import PipeGate from './PipeGate'
-import Player from '../players/Player'
+import Player, { PlayerVisual } from '../players/Player'
 import Name, { singletonName } from '../engine/Name'
+import PlayerRegistry from '../players/PlayerRegistry'
+import { Set } from 'typescript-collections'
 
 export default class Judge implements GameObject<World> {
   readonly name: Name = singletonName('Judge')
 
   readonly safeX: number
 
+  readonly playerManager: PlayerManager
+
   constructor(readonly world: World) {
     const { halfBirdWidth, pipeWidth, halfScreenWidth } = world.params
 
     this.safeX = halfScreenWidth - halfBirdWidth - pipeWidth
+
+    this.playerManager = new PlayerManager(world.game.playerRegistry)
   }
 
   private nextPipe: PipeGate | null = null
@@ -34,6 +40,10 @@ export default class Judge implements GameObject<World> {
 
     if (this.nextPipe != null) {
       this.detectCollision(this.nextPipe, world)
+    }
+
+    if (!this.playerManager.hasPendingOrAlive) {
+      this.world.gameOver()
     }
 
     this.updatePlayer(deltaTime, world.params.speed)
@@ -82,38 +92,42 @@ export default class Judge implements GameObject<World> {
   }
 
   detectCollision(pipe: PipeGate, world: World) {
-    this.liveBirds
+    this.birdsAlive
       .filter(bird => pipe.testHit(bird))
-      .forEach(bird => {
+      .forEach(sprite => {
+        const bird = sprite as Bird
         debug('Bird[%s] collides on Pipe[%s]', bird.name, pipe.name)
-        ;(bird as Bird).kill()
+        bird.kill()
+        this.playerManager.removeBird(bird)
         this.revivePlayer(bird.player)
       })
   }
 
-  createBirdForPlayer(player: Player, isPending: boolean) {
-    const bird = new Bird(player, this.world, isPending)
+  createBirdForPlayer(
+    player: Player,
+    pendingCallback: PendingCallback | null = null
+  ) {
+    const bird = new Bird(player, this.world, pendingCallback)
+    if (bird.isLive) {
+      this.playerManager.addBird(bird)
+    } else {
+      this.playerManager.addPending(bird)
+    }
     this.world.addActor(bird)
   }
 
-  get players(): Player[] {
-    return this.world.players
-  }
-
-  get liveBirds(): Bird[] {
+  get birdsAlive(): Bird[] {
     return this.world.actors
       .getValue('Player')
       .map(bird => bird as Bird)
       .filter(bird => bird.isLive)
   }
 
-  get livePlayers(): Player[] {
-    return this.liveBirds.map(bird => bird.player)
-  }
-
   startGame() {
-    this.players.forEach(player => {
-      this.createBirdForPlayer(player, false)
+    this.playerManager.reset()
+
+    this.playerManager.allPlayers.forEach(player => {
+      this.createBirdForPlayer(player)
       player.onGameStart()
     })
   }
@@ -121,29 +135,78 @@ export default class Judge implements GameObject<World> {
   private updatePlayer(deltaTime: number, speed: number) {
     const distance = deltaTime * speed
 
-    this.liveBirds.forEach(bird => {
+    this.playerManager.birdsAlive.forEach(bird => {
       const player = bird.player
       player.liveScore.increaseDistance(distance)
 
       if (this.nextPipe != null) {
-        const { gapPosition, halfGapSize, x } = this.nextPipe
-        player.onVisual({
-          speed: speed,
-          distanceToNextPipe: x - bird.x,
-          pipeGap: 2 * halfGapSize,
-          heightDifference: gapPosition - bird.y
-        })
+        player.onVisual(PlayerVisual.create(speed, bird, this.nextPipe))
       }
     })
   }
 
   private updatePlayerPipeCount() {
-    this.livePlayers.forEach(player => player.liveScore.increasePipeCount())
+    this.playerManager.playersAlive.forEach(player =>
+      player.liveScore.increasePipeCount()
+    )
   }
 
   private revivePlayer(player: Player) {
-    if (this.world.params.autoRevive) {
-      this.createBirdForPlayer(player, true)
+    if (player.scoreRecord.death < 10) {
+      this.createBirdForPlayer(player, this.playerManager.onActivate())
     }
+  }
+}
+
+class PlayerManager {
+  readonly playersAlive: Set<Player> = new Set(p => p.name)
+  readonly birdsAlive: Set<Bird> = new Set(p => p.name)
+  readonly pendingBirds: Set<Bird> = new Set(p => p.name)
+
+  constructor(readonly playerRegistry: PlayerRegistry) {}
+
+  get allPlayers(): Player[] {
+    return this.playerRegistry.allPlayers
+  }
+
+  get hasAlive(): boolean {
+    return this.playersAlive.size() > 0
+  }
+
+  get hasPending(): boolean {
+    return this.pendingBirds.size() > 0
+  }
+
+  get hasPendingOrAlive(): boolean {
+    return this.hasAlive || this.hasPending
+  }
+
+  addPending(bird: Bird) {
+    this.pendingBirds.add(bird)
+  }
+
+  activate(bird: Bird) {
+    this.pendingBirds.remove(bird)
+    this.addBird(bird)
+  }
+
+  onActivate(): PendingCallback {
+    return this.activate.bind(this)
+  }
+
+  addBird(bird: Bird) {
+    this.birdsAlive.add(bird)
+    this.playersAlive.add(bird.player)
+  }
+
+  removeBird(bird: Bird) {
+    this.birdsAlive.remove(bird)
+    this.playersAlive.remove(bird.player)
+  }
+
+  reset() {
+    this.playersAlive.clear()
+    this.birdsAlive.clear()
+    this.pendingBirds.clear()
   }
 }

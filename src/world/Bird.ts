@@ -12,7 +12,7 @@ export default class Bird extends ContainerActor<World> {
   constructor(
     readonly player: Player,
     readonly world: World,
-    isPending: boolean = false
+    pendingCallback: PendingCallback | null = null
   ) {
     super(player.name)
 
@@ -35,8 +35,8 @@ export default class Bird extends ContainerActor<World> {
 
     this.velocity = 0
 
-    if (isPending) {
-      this.state = new BirdPendingState(this)
+    if (pendingCallback != null) {
+      this.state = new BirdPendingState(this, pendingCallback)
     } else {
       this.state = new BirdLiveState(this)
     }
@@ -207,14 +207,17 @@ class BirdDeadState extends BirdState {
   }
 }
 
+export type PendingCallback = (bird: Bird) => void
+
 class BirdPendingState extends BirdState {
-  constructor(bird: Bird) {
+  constructor(bird: Bird, readonly pendingCallback: PendingCallback) {
     super(bird, 'Pending', false)
     bird.alpha = 0.5
   }
 
   onFlap() {
     new BirdLiveState(this.bird)
+    this.pendingCallback(this.bird)
     this.bird.player.onRevive()
     this.bird.flap()
   }

@@ -7,6 +7,7 @@ import PipeGenerator from './PipeGenerator'
 import ParameterController from './ParameterController'
 import Game from '../engine/Game'
 import { GlobalScoreBoard } from './ScoreLabel'
+import GameEnd from '../gameEnd/GameEnd'
 
 export default class World extends Stage<World> {
   readonly params: ParameterController = new ParameterController()
@@ -29,5 +30,19 @@ export default class World extends Stage<World> {
     this.addChild(this.scoreBoard)
 
     judge.startGame()
+
+    this.game.keyboard
+      .onKey('KeyQ')
+      .onEvent('keyDownSingle', () => judge.playerManager.reset())
+  }
+
+  gameOver() {
+    const gameEnd = new GameEnd(this.game)
+
+    gameEnd.setup()
+
+    this.game.stage = gameEnd
+
+    this.game.keyboard.silence('keyQ')
   }
 }

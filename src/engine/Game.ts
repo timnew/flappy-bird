@@ -1,18 +1,14 @@
-import { Application, Rectangle, loaders, ticker } from 'pixi.js'
+import { Application, Rectangle, loaders, ticker, Container } from 'pixi.js'
 import KeyboardListener from './KeyboardListener'
 import World from '../world/World'
-import Player from '../players/Player'
-import HumanPlayer from './HumanPlayer'
-import PlayerManager from '../players/PlayerManager'
+
+import PlayerRegistry from '../players/PlayerRegistry'
+import GameObject from './GameObject'
 
 class Game {
   constructor(private app: Application) {}
 
-  readonly playerManager: PlayerManager = new PlayerManager()
-
-  get players(): Player[] {
-    return this.playerManager.players
-  }
+  readonly playerRegistry: PlayerRegistry = new PlayerRegistry()
 
   get screen(): Rectangle {
     return this.app.screen
@@ -21,8 +17,6 @@ class Game {
   get resources(): loaders.ResourceDictionary {
     return this.app.loader.resources
   }
-
-  world: World = new World(this)
 
   run() {
     this.app.loader.load(() => {
@@ -36,19 +30,27 @@ class Game {
   setup() {
     this.keyboard.subscribe()
 
-    this.playerManager.addHuman(
-      new HumanPlayer('TimNew', this.keyboard.onKey('Space'))
-    )
+    this.playerRegistry.addHumanPlayer('TimNew', this.keyboard.onKey('Space'))
 
-    this.world.setup()
+    const world = new World(this)
 
-    this.app.stage = this.world
+    world.setup()
+
+    this.stage = world
+  }
+
+  get stage(): GameObject<Game> & Container {
+    return this.app.stage as GameObject<Game> & Container
+  }
+
+  set stage(stage: GameObject<Game> & Container) {
+    this.app.stage = stage
   }
 
   loop() {
     const ticker = this.app.ticker
 
-    this.world.update(ticker.elapsedMS / 1000)
+    this.stage.update(ticker.elapsedMS / 1000, this)
   }
 }
 
