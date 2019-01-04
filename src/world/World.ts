@@ -1,9 +1,8 @@
 import createDebug from 'debug'
 const debug = createDebug('app:World')
 
-import Bird from './Bird'
 import Stage from '../engine/Stage'
-import Judger from './Judger'
+import Judge from './Judge'
 import PipeGenerator from './PipeGenerator'
 import ParameterController from './ParameterController'
 import Game from '../engine/Game'
@@ -25,7 +24,7 @@ export default class World extends Stage<World> {
 
     this.addController(new HumanPlayer(this, 'TimNew', 'Space'))
 
-    const judge = new Judger(this)
+    const judge = new Judge(this)
 
     this.addObject(judge)
     this.addObject(new PipeGenerator(this))

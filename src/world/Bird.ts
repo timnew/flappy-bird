@@ -14,7 +14,7 @@ export default class Bird extends ContainerActor<World> {
     readonly world: World,
     isPending: boolean = false
   ) {
-    super(player.fullName)
+    super(player.name)
 
     this.birdSprite = this.createBirdSprite(world)
 

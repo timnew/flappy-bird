@@ -1,8 +1,8 @@
 import { ContainerActor } from '../engine/ContainerActor'
 import World from './World'
-import { Sprite, loaders, DisplayObject, Rectangle, Point } from 'pixi.js'
-import FullName from '../engine/FullName'
+import { Sprite, loaders } from 'pixi.js'
 import Bird from './Bird'
+import { typedName } from '../engine/Name'
 
 export default class PipeGate extends ContainerActor<World> {
   static instanceCount: number = 0
@@ -16,7 +16,7 @@ export default class PipeGate extends ContainerActor<World> {
     readonly gapPosition: number,
     readonly halfGapSize: number
   ) {
-    super(new FullName('PipeGate', String(PipeGate.instanceCount++)))
+    super(typedName('PipeGate', String(PipeGate.instanceCount++)))
 
     this.x = x
 

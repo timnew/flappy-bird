@@ -1,4 +1,4 @@
-import { Sprite, Text, TextStyle, Container } from 'pixi.js'
+import { Text, TextStyle, Container } from 'pixi.js'
 import Player from '../engine/Player'
 import Bird from './Bird'
 import World from './World'

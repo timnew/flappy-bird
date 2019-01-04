@@ -4,11 +4,11 @@ const debug = createDebug('app:PipeGenerator')
 import GameObject from '../engine/GameObject'
 import World from './World'
 import { randomInt } from '../engine/randomGenerator'
-import FullName from '../engine/FullName'
 import PipeGate from './PipeGate'
+import Name, { singletonName } from '../engine/Name'
 
 export default class PipeGenerator implements GameObject<World> {
-  readonly fullName = FullName.singleton('PipeGenerator')
+  readonly name: Name = singletonName('PipeGenerator')
 
   readonly initialX: number
   get distanceThreshold(): number {

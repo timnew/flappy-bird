@@ -35,7 +35,7 @@ class Game {
   loop() {
     const ticker = this.app.ticker
 
-    this.world.update(ticker.elapsedMS / 1000, this)
+    this.world.update(ticker.elapsedMS / 1000)
   }
 }
 

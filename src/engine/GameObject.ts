@@ -1,7 +1,7 @@
-import FullName from './FullName'
+import Name from './Name'
 
 export default interface GameObject<TStage> {
-  readonly fullName: FullName
+  readonly name: Name
 
   update(deltaTime: number, stage: TStage): void
 }

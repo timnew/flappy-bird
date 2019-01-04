@@ -1,15 +1,15 @@
 import createDebug from 'debug'
-const debug = createDebug('app:Judger')
+const debug = createDebug('app:Judge')
 
 import GameObject from '../engine/GameObject'
 import World from './World'
 import Bird from './Bird'
-import FullName from '../engine/FullName'
 import PipeGate from './PipeGate'
 import Player from '../engine/Player'
+import Name, { singletonName } from '../engine/Name'
 
-export default class Judger implements GameObject<World> {
-  readonly fullName = FullName.singleton('Judger')
+export default class Judge implements GameObject<World> {
+  readonly name: Name = singletonName('Judge')
 
   readonly safeX: number
 

@@ -1,10 +1,10 @@
 import World from './World'
 import GameObject from '../engine/GameObject'
-import FullName from '../engine/FullName'
 import { Rectangle } from 'pixi.js'
+import Name, { singletonName } from '../engine/Name'
 
 export default class ParameterController implements GameObject<World> {
-  readonly fullName = FullName.singleton('ParameterController')
+  readonly name: Name = singletonName('ParameterController')
 
   constructor() {
     ;(window as any).params = this

@@ -1,12 +1,11 @@
 import { Container } from 'pixi.js'
 import GameObject from './GameObject'
-import FullName from './FullName'
+import Name from './Name'
 
 export abstract class ContainerActor<TStage> extends Container
   implements GameObject<TStage> {
-  constructor(readonly fullName: FullName) {
+  constructor(readonly name: Name) {
     super()
-    this.name = fullName.toString()
   }
 
   abstract update(deltaTime: number, stage: TStage): void

@@ -5,17 +5,15 @@ import { Container, Rectangle, loaders, DisplayObject } from 'pixi.js'
 import Game from './Game'
 import GameObject from './GameObject'
 import { MultiDictionary } from 'typescript-collections'
-import FullName from './FullName'
 import KeyboardListener from './KeyboardListener'
+import Name, { typedName } from './Name'
 
 export default abstract class Stage<T extends Stage<T>> extends Container
   implements GameObject<Game> {
-  readonly fullName: FullName
-
-  constructor(name: string, readonly game: Game) {
+  readonly name: Name
+  constructor(localName: string, readonly game: Game) {
     super()
-    this.fullName = new FullName('Stage', name)
-    this.name = this.fullName.toString()
+    this.name = typedName('Stage', localName)
   }
 
   get screen(): Rectangle {
@@ -57,7 +55,7 @@ export default abstract class Stage<T extends Stage<T>> extends Container
 
   addActor(actor: GameObject<T> & DisplayObject, onTop: boolean = false) {
     debug('Add actor: %s', actor.name)
-    this.actors.setValue(actor.fullName.type, actor)
+    this.actors.setValue(actor.name.type, actor)
     if (onTop) {
       this.addChild(actor as DisplayObject)
     } else {
@@ -66,27 +64,27 @@ export default abstract class Stage<T extends Stage<T>> extends Container
   }
 
   addController(controller: GameObject<T>) {
-    debug('Add controller: %s', controller.fullName)
-    this.controllers.setValue(controller.fullName.type, controller)
+    debug('Add controller: %s', controller.name)
+    this.controllers.setValue(controller.name.type, controller)
   }
 
   removeActor(actor: GameObject<T> & DisplayObject) {
     debug('Remove actor: %s', actor.name)
 
-    this.actors.remove(actor.fullName.type, actor)
+    this.actors.remove(actor.name.type, actor)
     this.removeChild(actor)
   }
 
   removeController(controller: GameObject<T>) {
-    debug('Remove controller: %s', controller.fullName)
+    debug('Remove controller: %s', controller.name)
 
-    this.controllers.remove(controller.fullName.name, controller)
+    this.controllers.remove(controller.name.type, controller)
   }
 
   abstract setup(): void
 
-  update(deltaTime: number, game: Game): void {
-    const stage: T = this as any // To workaround the compiler type check
+  update(deltaTime: number): void {
+    const stage: T = (this as any) as T
     this.actors.values().forEach(actor => {
       actor.update(deltaTime, stage)
     })

@@ -1,12 +1,11 @@
 import createDebug, { IDebugger } from 'debug'
 
-import FullName from './FullName'
 import World from '../world/World'
 import GameObject from './GameObject'
 import Bird from '../world/Bird'
-import { Text } from 'pixi.js'
 import NameLabel from '../world/NameLabel'
 import { AttachedScoreLabel, ScoreLabel } from '../world/ScoreLabel'
+import Name, { typedName } from './Name'
 
 export type BirdLeash = (command: string, data: any) => void
 
@@ -18,16 +17,13 @@ export interface PlayerVisual {
 }
 
 export default class Player implements GameObject<World> {
-  get name() {
-    return this.fullName.name
-  }
-  readonly fullName: FullName
+  readonly name: Name
   readonly debug: IDebugger
 
   constructor(readonly world: World, name: string) {
-    this.fullName = new FullName('Player', name)
+    this.name = typedName('Player', name)
 
-    this.debug = createDebug(this.fullName.fullName)
+    this.debug = createDebug(this.name)
 
     this.reportScore()
   }
@@ -46,7 +42,7 @@ export default class Player implements GameObject<World> {
   }
 
   protected setupNameLabel(bird: Bird): NameLabel {
-    const text = `${this.fullName.name}:${this.death}`
+    const text = `${this.name}:${this.death}`
     const label = new NameLabel(text, bird.birdSprite)
     bird.addChild(label)
     return label
@@ -150,7 +146,7 @@ export default class Player implements GameObject<World> {
   private reportScore() {
     if (window.gameObserver != null) {
       window.gameObserver.reportPlayerScore({
-        name: this.fullName.name,
+        name: this.name,
         score: this.score,
         bestScore: this.bestScore,
         distance: this.distance,
