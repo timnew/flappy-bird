@@ -113,7 +113,7 @@ export default class Judge implements GameObject<World> {
 
   startGame() {
     this.players.forEach(player => {
-      this.createBirdForPlayer(player, true)
+      this.createBirdForPlayer(player, false)
       player.onGameStart()
     })
   }
