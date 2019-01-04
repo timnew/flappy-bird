@@ -82,7 +82,7 @@ export class GlobalScoreBoard extends Container implements ScoreLabel {
     this.renderRight(player.scoreRecord)
   }
 
-  renderLeft({ overall, pipeCount, distance, death }: Score) {
+  renderLeft({ name, overall, pipeCount, distance, death }: Score) {
     this.leftLabel.text = [
       `    ${name} [${death} gen]`,
       `      Overall: ${Math.round(overall)}`,
