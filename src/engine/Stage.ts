@@ -7,6 +7,7 @@ import GameObject from './GameObject'
 import { MultiDictionary } from 'typescript-collections'
 import KeyboardListener from './KeyboardListener'
 import Name, { typedName } from './Name'
+import Player from '../players/Player'
 
 export default abstract class Stage<T extends Stage<T>> extends Container
   implements GameObject<Game> {
@@ -26,6 +27,10 @@ export default abstract class Stage<T extends Stage<T>> extends Container
 
   get keyboard(): KeyboardListener {
     return this.game.keyboard
+  }
+
+  get players(): Player[] {
+    return this.game.players
   }
 
   readonly actors: MultiDictionary<

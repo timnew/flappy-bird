@@ -2,6 +2,7 @@ import { Text, TextStyle, Container } from 'pixi.js'
 import Player from '../players/Player'
 import Bird from './Bird'
 import World from './World'
+import { Score } from '../players/Score'
 
 export interface ScoreLabel {
   renderScore(player: Player): void
@@ -26,12 +27,14 @@ export class AttachedScoreLabel extends Text implements ScoreLabel {
   }
 
   renderScore(player: Player): void {
-    const { score, pipeCount, death } = player
-    this.text = `S: ${Math.round(score)}\nP: ${pipeCount} L: ${death}`
+    const { overall, pipeCount, distance, death } = player.liveScore
+    this.text = `S: ${Math.round(overall)} P: ${pipeCount}\nL: ${Math.round(
+      distance
+    )} D: ${death}`
   }
 }
 
-export class FixedScoreLabel extends Container implements ScoreLabel {
+export class GlobalScoreBoard extends Container implements ScoreLabel {
   readonly leftLabel: Text
   readonly rightLabel: Text
 
@@ -75,28 +78,25 @@ export class FixedScoreLabel extends Container implements ScoreLabel {
   }
 
   renderScore(player: Player): void {
-    const {
-      name,
-      score,
-      pipeCount,
-      distance,
-      death,
-      bestScore,
-      bestDistance,
-      bestPipeCount
-    } = player
+    this.renderLeft(player.liveScore)
+    this.renderRight(player.scoreRecord)
+  }
 
+  renderLeft({ overall, pipeCount, distance, death }: Score) {
     this.leftLabel.text = [
       `    ${name} [${death} gen]`,
-      `        Score: ${Math.round(score)}`,
+      `      Overall: ${Math.round(overall)}`,
       `         Pipe: ${pipeCount}`,
       `     Distance: ${Math.round(distance)}`
     ].join('\n')
+  }
 
+  renderRight({ overall, pipeCount, distance, death }: Score) {
     this.rightLabel.text = [
-      `   Best Score: ${Math.round(bestScore)}`,
-      `    Best Pipe: ${bestPipeCount}`,
-      `Best Distance: ${Math.round(bestDistance)}`
+      ` Best Overall: ${Math.round(overall)}`,
+      `    Best Pipe: ${pipeCount}`,
+      `Best Distance: ${Math.round(distance)}`,
+      `  Total Death: ${death}`
     ].join('\n')
   }
 }

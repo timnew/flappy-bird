@@ -1,9 +1,13 @@
 import { Application, Rectangle, loaders, ticker } from 'pixi.js'
 import KeyboardListener from './KeyboardListener'
 import World from '../world/World'
+import Player from '../players/Player'
+import HumanPlayer from './HumanPlayer'
 
 class Game {
   constructor(private app: Application) {}
+
+  readonly players: Player[] = []
 
   get screen(): Rectangle {
     return this.app.screen
@@ -26,6 +30,8 @@ class Game {
 
   setup() {
     this.keyboard.subscribe()
+
+    this.players.push(new HumanPlayer('TimNew', this.keyboard.onKey('Space')))
 
     this.world.setup()
 

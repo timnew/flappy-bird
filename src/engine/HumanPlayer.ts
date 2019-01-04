@@ -1,25 +1,24 @@
 import Player from '../players/Player'
-import World from '../world/World'
 import Bird from '../world/Bird'
-import { Text } from 'pixi.js'
 import NameLabel from '../world/NameLabel'
 import { ScoreLabel } from '../world/ScoreLabel'
+import { KeyBinding } from './KeyboardListener'
 
 export default class HumanPlayer extends Player {
-  constructor(readonly world: World, name: string, readonly keyCode: string) {
-    super(world, name)
+  constructor(name: string, readonly keyBinding: KeyBinding) {
+    super(name)
 
-    world.keyboard.onKey(keyCode).onEvent('keyDownSingle', () => {
+    keyBinding.onEvent('keyDownSingle', () => {
       this.flap()
     })
 
-    this.debug('Listening on key %s', keyCode)
+    this.debug('Listening on key %s', keyBinding.code)
   }
 
   protected setupNameLabel(bird: Bird): NameLabel {
     const label = super.setupNameLabel(bird)
 
-    label.text = `${this.name.localName}:${this.death}`
+    label.text = `${this.name.localName}:${this.scoreRecord.death}`
 
     label.alpha = 0.7
 
@@ -27,12 +26,12 @@ export default class HumanPlayer extends Player {
   }
 
   protected setupScoreLabel(bird: Bird): ScoreLabel {
-    this.scoreLabel = this.world.scoreLabel
+    this.scoreLabel = bird.world.scoreBoard
     return this.scoreLabel
   }
 
   dispose() {
-    this.world.keyboard.silence(this.keyCode)
+    this.keyBinding.dispose()
     this.debug('Disposed')
   }
 }

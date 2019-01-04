@@ -1,11 +1,10 @@
 import createDebug, { IDebugger } from 'debug'
 
-import World from '../world/World'
-import GameObject from '../engine/GameObject'
 import Bird from '../world/Bird'
 import NameLabel from '../world/NameLabel'
 import { AttachedScoreLabel, ScoreLabel } from '../world/ScoreLabel'
-import Name, { typedName } from '../engine/Name'
+import Name, { typedName, fullName } from '../engine/Name'
+import { LiveScore, ScoreRecord } from './Score'
 
 export type BirdLeash = (command: string, data: any) => void
 
@@ -16,17 +15,22 @@ export interface PlayerVisual {
   heightDifference: number
 }
 
-export default class Player implements GameObject<World> {
+export default class Player {
   readonly name: Name
   readonly debug: IDebugger
 
-  constructor(readonly world: World, name: string) {
+  constructor(
+    name: string,
+    readonly liveScore: LiveScore = new LiveScore(fullName(name)),
+    readonly scoreRecord: ScoreRecord = new ScoreRecord(fullName(name))
+  ) {
     this.name = typedName('Player', name)
 
     this.debug = createDebug(this.name)
   }
 
   attach(bird: Bird) {
+    this.debug('Attach to %s', bird.name)
     this.birdLeash = bird.onLeash.bind(bird)
 
     this.setupNameLabel(bird)
@@ -36,6 +40,7 @@ export default class Player implements GameObject<World> {
   }
 
   detach(bird: Bird) {
+    this.debug('Detached from $s', bird)
     this.birdLeash = null
   }
 
@@ -59,17 +64,6 @@ export default class Player implements GameObject<World> {
     }
   }
 
-  score: number = 0
-  bestScore: number = 0
-
-  distance: number = 0
-  bestDistance: number = 0
-
-  pipeCount: number = 0
-  bestPipeCount: number = 0
-
-  death: number = 0
-
   birdLeash: BirdLeash | null = null
 
   instructBird(command: string, data: any = null) {
@@ -89,46 +83,10 @@ export default class Player implements GameObject<World> {
     this.instructBird('flap')
   }
 
-  onIncreaseDistance(deltaDistance: number) {
-    this.distance += deltaDistance
-    this.updateScore(false)
-  }
-
-  onIncreasePipeCount() {
-    this.pipeCount += 1
-    this.updateScore()
-  }
-
-  private updateScore(report: boolean = true) {
-    this.score = this.distance + this.pipeCount * 500
-
-    this.renderScore()
-
-    if (report) {
-      this.debug(
-        'Score: d: %d p: %d s: %d',
-        this.distance,
-        this.pipeCount,
-        this.score
-      )
-    }
-  }
-
   onDeath() {
-    this.death += 1
-
-    this.debug('Dead: $d', this.death)
-
-    this.bestScore = Math.max(this.bestScore, this.score)
-    this.score = 0
-
-    this.bestDistance = Math.max(this.bestDistance, this.distance)
-    this.distance = 0
-
-    this.bestPipeCount = Math.max(this.bestPipeCount, this.pipeCount)
-    this.pipeCount = 0
-
-    this.updateScore()
+    this.scoreRecord.mergeIn(this.liveScore)
+    this.liveScore.reset(true)
+    this.debug('Dead: $d', this.scoreRecord.death)
   }
 
   onRevive() {
@@ -136,6 +94,4 @@ export default class Player implements GameObject<World> {
   }
 
   onVisual(visual: PlayerVisual) {}
-
-  update(deltaTime: number, stage: World): void {}
 }

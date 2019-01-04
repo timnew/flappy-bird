@@ -28,9 +28,13 @@ export class KeyBinding {
 
   private emitter: EventEmitter = new EventEmitter()
 
-  constructor(readonly code: string) {
+  constructor(readonly listener: KeyboardListener, readonly code: string) {
     this._isDown = false
     this._isRepeating = false
+  }
+
+  dispose() {
+    this.listener.silence(this.code)
   }
 
   onEvent(event: KeyBindingEvents, handler: KeyBindingHandler) {
@@ -82,7 +86,7 @@ export default class KeyboardListener {
 
   onKey(code: string): KeyBinding {
     if (!this.isListening(code)) {
-      this.keyBindings.setValue(code, new KeyBinding(code))
+      this.keyBindings.setValue(code, new KeyBinding(this, code))
     }
 
     return this.keyBindings.getValue(code)!

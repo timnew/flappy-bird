@@ -97,9 +97,7 @@ export default class Judge implements GameObject<World> {
   }
 
   get players(): Player[] {
-    return this.world.controllers
-      .getValue('Player')
-      .map(player => player as Player)
+    return this.world.players
   }
 
   get liveBirds(): Bird[] {
@@ -125,7 +123,7 @@ export default class Judge implements GameObject<World> {
 
     this.liveBirds.forEach(bird => {
       const player = bird.player
-      player.onIncreaseDistance(distance)
+      player.liveScore.increaseDistance(distance)
 
       if (this.nextPipe != null) {
         const { gapPosition, halfGapSize, x } = this.nextPipe
@@ -140,7 +138,7 @@ export default class Judge implements GameObject<World> {
   }
 
   private updatePlayerPipeCount() {
-    this.livePlayers.forEach(player => player.onIncreasePipeCount())
+    this.livePlayers.forEach(player => player.liveScore.increasePipeCount())
   }
 
   private revivePlayer(player: Player) {
