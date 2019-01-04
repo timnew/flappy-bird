@@ -1,21 +1,70 @@
+import createDebug from 'debug'
+const debug = createDebug('app:PlayerRegistry')
+
 import HumanPlayer from '../engine/HumanPlayer'
 import Player from './Player'
 import { Dictionary, Set } from 'typescript-collections'
-import Name from '../engine/Name'
+import Name, { typedName } from '../engine/Name'
 import { KeyBinding } from '../engine/KeyboardListener'
+import AiPlayer from './ai/AiPlayer'
+import Gene from './ai/Gene'
+import Pair from './ai/Pair'
 
 export default class PlayerRegistry {
   readonly players: Dictionary<Name, Player> = new Dictionary()
 
-  addPlayer(player: Player) {
-    this.players.setValue(player.name, player)
+  readonly aiPlayers: Set<AiPlayer> = new Set(p => p.name)
+
+  createAi(count: number) {
+    for (let i = 0; i < count; i++) {
+      this.addAi(Gene.createRandom(typedName('G', String(i))))
+    }
+  }
+
+  addAi(gene: Gene) {
+    const player = new AiPlayer(gene)
+    this.aiPlayers.add(player)
+    debug('Created AI %s', player.name)
+  }
+
+  evolute() {
+    this.terminateWorst()
+    this.mutate()
+  }
+
+  terminateWorst() {
+    const players = this.aiPlayers.toArray()
+    players.sort((a, b) => a.scoreRecord.overall - b.scoreRecord.overall)
+
+    const half = Math.floor(players.length / 2)
+    const worst = players.slice(0, half)
+
+    worst.forEach(player => {
+      this.aiPlayers.remove(player)
+      debug('Terminate %s [%d]', player.name, player.scoreRecord.overall)
+    })
+  }
+
+  mutate() {
+    const genes = this.aiPlayers.toArray().map(p => p.gene)
+    const count = genes.length
+    const limit = Math.floor(count / 2)
+
+    const groupA = genes.slice(0, limit)
+    const groupB = genes.reverse().slice(0, limit)
+
+    Pair.zip(groupA, groupB)
+      .map(pair => Gene.crossOver(pair.a, pair.b))
+      .forEach(pair => pair.map(g => this.addAi(g)))
   }
 
   addHumanPlayer(name: string, keyBinding: KeyBinding) {
-    this.addPlayer(new HumanPlayer(name, keyBinding))
+    const player = new HumanPlayer(name, keyBinding)
+    this.players.setValue(player.name, player)
+    debug('Added Human %s[%s]', player.name, player.keyBinding.code)
   }
 
   get allPlayers(): Player[] {
-    return this.players.values()
+    return this.players.values().concat(this.aiPlayers.toArray())
   }
 }

@@ -38,16 +38,13 @@ export class PlayerVisual {
 }
 
 export default class Player {
-  readonly name: Name
   readonly debug: IDebugger
 
   constructor(
-    name: string,
+    readonly name: Name,
     readonly liveScore: LiveScore = new LiveScore(fullName(name)),
     readonly scoreRecord: ScoreRecord = new ScoreRecord(fullName(name))
   ) {
-    this.name = typedName('Player', name)
-
     this.debug = createDebug(this.name)
   }
 

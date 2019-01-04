@@ -3,10 +3,11 @@ import Bird from '../world/Bird'
 import NameLabel from '../world/NameLabel'
 import { ScoreLabel } from '../world/ScoreLabel'
 import { KeyBinding } from './KeyboardListener'
+import { typedName } from './Name'
 
 export default class HumanPlayer extends Player {
   constructor(name: string, readonly keyBinding: KeyBinding) {
-    super(name)
+    super(typedName('Player', name))
 
     keyBinding.onEvent('keyDownSingle', () => {
       this.flap()
