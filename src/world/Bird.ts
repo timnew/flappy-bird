@@ -3,7 +3,7 @@ const debug = createDebug('app:Bird')
 
 import World from './World'
 import { Rectangle, Sprite, Text, TextStyle } from 'pixi.js'
-import Player from '../engine/Player'
+import Player from '../players/Player'
 import { ContainerActor } from '../engine/ContainerActor'
 
 export default class Bird extends ContainerActor<World> {

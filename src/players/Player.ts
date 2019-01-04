@@ -1,11 +1,11 @@
 import createDebug, { IDebugger } from 'debug'
 
 import World from '../world/World'
-import GameObject from './GameObject'
+import GameObject from '../engine/GameObject'
 import Bird from '../world/Bird'
 import NameLabel from '../world/NameLabel'
 import { AttachedScoreLabel, ScoreLabel } from '../world/ScoreLabel'
-import Name, { typedName } from './Name'
+import Name, { typedName } from '../engine/Name'
 
 export type BirdLeash = (command: string, data: any) => void
 
@@ -24,8 +24,6 @@ export default class Player implements GameObject<World> {
     this.name = typedName('Player', name)
 
     this.debug = createDebug(this.name)
-
-    this.reportScore()
   }
 
   attach(bird: Bird) {
@@ -113,7 +111,6 @@ export default class Player implements GameObject<World> {
         this.pipeCount,
         this.score
       )
-      this.reportScore()
     }
   }
 
@@ -141,19 +138,4 @@ export default class Player implements GameObject<World> {
   onVisual(visual: PlayerVisual) {}
 
   update(deltaTime: number, stage: World): void {}
-
-  private reportScore() {
-    if (window.gameObserver != null) {
-      window.gameObserver.reportPlayerScore({
-        name: this.name,
-        score: this.score,
-        bestScore: this.bestScore,
-        distance: this.distance,
-        bestDistance: this.bestDistance,
-        pipeCount: this.pipeCount,
-        bestPipeCount: this.bestPipeCount,
-        death: this.death
-      })
-    }
-  }
 }

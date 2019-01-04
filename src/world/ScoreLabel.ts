@@ -1,5 +1,5 @@
 import { Text, TextStyle, Container } from 'pixi.js'
-import Player from '../engine/Player'
+import Player from '../players/Player'
 import Bird from './Bird'
 import World from './World'
 

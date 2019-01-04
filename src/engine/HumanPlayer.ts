@@ -1,4 +1,4 @@
-import Player from './Player'
+import Player from '../players/Player'
 import World from '../world/World'
 import Bird from '../world/Bird'
 import { Text } from 'pixi.js'

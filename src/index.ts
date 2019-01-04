@@ -16,9 +16,6 @@ loader
   .add({ name: 'topPipe', url: topPipeImage })
   .add({ name: 'bottomPipe', url: bottomPipeImage })
 
-import ConsoleObserver from './observer/consoleObserver'
-new ConsoleObserver()
-
 import Game from './engine/Game'
 
 const game = new Game(app)

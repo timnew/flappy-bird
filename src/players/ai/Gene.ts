@@ -1,12 +1,13 @@
 import * as tf from '@tensorflow/tfjs'
 import { SymbolicTensor, Model, Tensor, LayerVariable } from '@tensorflow/tfjs'
 import { Layer } from '@tensorflow/tfjs-layers/dist/exports_layers'
+import Name, { typedName } from '../../engine/Name'
 
 class Pair<T> {
   constructor(readonly a: T, readonly b: T) {}
 
-  map<R>(mapper: (s: T) => R): Pair<R> {
-    return new Pair<R>(mapper(this.a), mapper(this.b))
+  map<R>(mapper: (s: T, source: string) => R): Pair<R> {
+    return new Pair<R>(mapper(this.a, 'a'), mapper(this.b, 'b'))
   }
 
   apply<U, R>(arg: Pair<U>, applier: (a: T, b: U) => R): Pair<R> {
@@ -53,7 +54,7 @@ export default class Gene {
   readonly hiddenLayers: Layer[]
   readonly outputLayer: Layer
 
-  constructor(...layers: Layer[]) {
+  constructor(readonly name: Name, ...layers: Layer[]) {
     this.input = tf.input({ shape: [4] })
     this.hiddenLayers = layers
     this.outputLayer = tf.layers.dense({
@@ -73,8 +74,9 @@ export default class Gene {
     return tf.model({ inputs: this.input, outputs: output })
   }
 
-  static createRandom(): Gene {
+  static createRandom(name: Name): Gene {
     return new Gene(
+      name,
       tf.layers.dense({
         units: 10,
         inputShape: [2],
@@ -91,7 +93,10 @@ export default class Gene {
       Pair.zip(a.hiddenLayers, b.hiddenLayers).map(layerPair =>
         this.crossOverLayer(layerPair)
       )
-    ).map((crossOvered: Layer[]) => new Gene(...crossOvered))
+    ).map(
+      (crossOvered: Layer[], source: string) =>
+        new Gene(typedName(`${a.name}x${b.name}`, source), ...crossOvered)
+    )
   }
 
   private static crossOverLayer(source: Pair<Layer>): Pair<Layer> {

@@ -5,7 +5,7 @@ import GameObject from '../engine/GameObject'
 import World from './World'
 import Bird from './Bird'
 import PipeGate from './PipeGate'
-import Player from '../engine/Player'
+import Player from '../players/Player'
 import Name, { singletonName } from '../engine/Name'
 
 export default class Judge implements GameObject<World> {
