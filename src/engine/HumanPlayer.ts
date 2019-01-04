@@ -19,6 +19,8 @@ export default class HumanPlayer extends Player {
   protected setupNameLabel(bird: Bird): NameLabel {
     const label = super.setupNameLabel(bird)
 
+    label.text = `${this.name.localName}:${this.death}`
+
     label.alpha = 0.7
 
     return label

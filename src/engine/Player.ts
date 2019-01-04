@@ -42,8 +42,7 @@ export default class Player implements GameObject<World> {
   }
 
   protected setupNameLabel(bird: Bird): NameLabel {
-    const text = `${this.name}:${this.death}`
-    const label = new NameLabel(text, bird.birdSprite)
+    const label = new NameLabel(this.name, bird.birdSprite)
     bird.addChild(label)
     return label
   }
