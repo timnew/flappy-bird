@@ -3,11 +3,16 @@ import KeyboardListener from './KeyboardListener'
 import World from '../world/World'
 import Player from '../players/Player'
 import HumanPlayer from './HumanPlayer'
+import PlayerManager from '../players/PlayerManager'
 
 class Game {
   constructor(private app: Application) {}
 
-  readonly players: Player[] = []
+  readonly playerManager: PlayerManager = new PlayerManager()
+
+  get players(): Player[] {
+    return this.playerManager.players
+  }
 
   get screen(): Rectangle {
     return this.app.screen
@@ -31,7 +36,9 @@ class Game {
   setup() {
     this.keyboard.subscribe()
 
-    this.players.push(new HumanPlayer('TimNew', this.keyboard.onKey('Space')))
+    this.playerManager.addHuman(
+      new HumanPlayer('TimNew', this.keyboard.onKey('Space'))
+    )
 
     this.world.setup()
 
