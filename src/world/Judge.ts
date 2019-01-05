@@ -152,9 +152,9 @@ export default class Judge implements GameObject<World> {
   }
 
   private revivePlayer(player: Player) {
-    if (player.scoreRecord.death < 10) {
-      this.createBirdForPlayer(player, this.playerManager.onActivate())
-    }
+    // if (player.scoreRecord.death < 10) {
+    //   this.createBirdForPlayer(player, this.playerManager.onActivate())
+    // }
   }
 }
 
