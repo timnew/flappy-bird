@@ -98,7 +98,6 @@ export default class Player {
   }
 
   flap() {
-    this.debug('Flap Bird')
     this.instructBird('flap')
   }
 
