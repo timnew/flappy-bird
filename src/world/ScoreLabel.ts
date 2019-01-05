@@ -27,10 +27,11 @@ export class AttachedScoreLabel extends Text implements ScoreLabel {
   }
 
   renderScore(player: Player): void {
-    const { overall, pipeCount, distance, death } = player.liveScore
-    this.text = `S: ${Math.round(overall)} P: ${pipeCount}\nL: ${Math.round(
-      distance
-    )} D: ${death}`
+    const { overall: bs, pipeCount: bp, death: d } = player.scoreRecord
+    const { overall: s, pipeCount: p } = player.liveScore
+    this.text = `D: ${d}\nBS: ${Math.round(bs)} BP: ${bp}\nS: ${Math.round(
+      s
+    )} P: ${p}`
   }
 }
 
