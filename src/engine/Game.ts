@@ -31,6 +31,7 @@ class Game {
     this.keyboard.subscribe()
 
     this.playerRegistry.addHumanPlayer('TimNew', this.keyboard.onKey('Space'))
+    this.playerRegistry.createAi(10)
 
     const world = new World(this)
 
