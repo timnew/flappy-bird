@@ -37,12 +37,17 @@ export default class World extends Stage<World> {
   }
 
   gameOver() {
-    const gameEnd = new GameEnd(this.game)
+    // const gameEnd = new GameEnd(this.game)
 
-    gameEnd.setup()
+    // gameEnd.setup()
 
-    this.game.stage = gameEnd
+    // this.game.stage = gameEnd
 
-    this.game.keyboard.silence('keyQ')
+    // this.game.keyboard.silence('keyQ')
+
+    this.game.playerRegistry.evolute()
+    const game = new World(this.game)
+    game.setup()
+    this.game.stage = game
   }
 }
