@@ -5,6 +5,7 @@ import World from './World'
 import { Rectangle, Sprite, Text, TextStyle } from 'pixi.js'
 import Player from '../players/Player'
 import { ContainerActor } from '../engine/ContainerActor'
+import { typedName } from '../engine/Name'
 
 export default class Bird extends ContainerActor<World> {
   readonly birdSprite: Sprite
@@ -14,7 +15,7 @@ export default class Bird extends ContainerActor<World> {
     readonly world: World,
     pendingCallback: PendingCallback | null = null
   ) {
-    super(player.name)
+    super(typedName('Player', player.name))
 
     this.birdSprite = this.createBirdSprite(world)
 

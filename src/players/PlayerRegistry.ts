@@ -7,8 +7,7 @@ import { Dictionary, Set } from 'typescript-collections'
 import Name, { typedName } from '../engine/Name'
 import { KeyBinding } from '../engine/KeyboardListener'
 import AiPlayer from './ai/AiPlayer'
-import Gene from './ai/Gene'
-import Pair from './ai/Pair'
+import Gene, { createGene } from './ai/Gene'
 
 export default class PlayerRegistry {
   readonly players: Dictionary<Name, Player> = new Dictionary()
@@ -17,7 +16,7 @@ export default class PlayerRegistry {
 
   createAi(count: number) {
     for (let i = 0; i < count; i++) {
-      this.addAi(Gene.createRandom(typedName('G', String(i))))
+      this.addAi(createGene(typedName('G', String(i))))
     }
   }
 
@@ -53,9 +52,9 @@ export default class PlayerRegistry {
     const groupA = genes.slice(0, limit)
     const groupB = genes.reverse().slice(0, limit)
 
-    Pair.zip(groupA, groupB)
-      .map(pair => Gene.crossOver(pair.a, pair.b))
-      .forEach(pair => pair.map(g => this.addAi(g)))
+    groupA.forEach((a, index) => {
+      a.crossover(groupB[index]).forEach(this.addAi.bind(this))
+    })
   }
 
   addHumanPlayer(name: string, keyBinding: KeyBinding) {
