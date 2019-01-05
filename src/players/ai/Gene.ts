@@ -10,13 +10,13 @@ import {
   sequential,
   tidy,
   Tensor,
-  tensor2d
+  tensor2d,
+  zeros
 } from '@tensorflow/tfjs'
 import { PlayerVisual } from '../Player'
 
 type Pair<T> = [T, T]
 type DPair<T> = Pair<Pair<T>>
-type TPair<T> = Pair<Pair<Pair<T>>>
 type Twin<T1, T2> = [T1, T2]
 
 function transpose<T1, T2>([[a1, a2], [b1, b2]]: Twin<
@@ -28,10 +28,6 @@ function transpose<T1, T2>([[a1, a2], [b1, b2]]: Twin<
 
 function flatten<T>([[a, b], [c, d]]: DPair<T>): T[] {
   return [a, b, c, d]
-}
-
-function firstLens<T>([a, b]: Pair<T>, func: (v: T) => T): Pair<T> {
-  return [func(a), b]
 }
 
 function crossover<T>([[h1, t1], [h2, t2]]: Pair<Pair<T>>): Pair<Pair<T>> {
@@ -81,6 +77,8 @@ function extractLayer(gene: Gene): Pair<Layer> {
 export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
   const parentName = `[${genes.map(g => g.name).join('x')}]`
 
+  debug('Crossover %s', parentName)
+
   // [Ga', Gb']
   const newGenes = genes.map((_, i) =>
     createGene(typedName(parentName, String(i)))
@@ -92,8 +90,8 @@ export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
 
     // [[La1, La2], [Lb1, Lb2]] => [[Wa1, Wa2], [Wb1, Wb2]]
     const weights = layers.map(p =>
-      p.map(layer => layer.getWeights())
-    ) as TPair<Tensor>
+      p.map(layer => layer.getWeights()[0])
+    ) as DPair<Tensor>
 
     // [[Wa1, Wa2], [Wb1, Wb2]] => [[Wa1, Wb1], [Wa2, Wb2]]
     const transposedWeights = transpose(weights)
@@ -102,8 +100,8 @@ export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
 
     // [[Wa1, Wb1], [Wa2, Wb2]] => [[Wa1', Wb1'], [Wa2', Wb2']]
     const transposedCrossoveredWeights = transposedWeights.map(
-      (weights, index) => firstLens(weights, crossoverFunctions[index])
-    ) as TPair<Tensor>
+      (weights, index) => crossoverFunctions[index](weights)
+    ) as DPair<Tensor>
 
     // [[Wa1', Wb1'], [Wa2', Wb2']] => [[Wa1', Wa2'], [Wb1', Wb2']]
     const crossoveredWeights = transpose(transposedCrossoveredWeights)
@@ -117,7 +115,7 @@ export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
     // ]
     const zip = [newLayers, crossoveredWeights] as Twin<
       DPair<Layer>,
-      TPair<Tensor>
+      DPair<Tensor>
     >
 
     // [
@@ -132,13 +130,14 @@ export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
     // ]
     const squareTransposedZip = transposedZip.map(p =>
       transpose(p as any)
-    ) as DPair<Twin<Layer, Pair<Tensor>>>
+    ) as DPair<Twin<Layer, Tensor>>
 
     // [[La1', Wa1'], [La2', Wa2'], [Lb1', Wb1'], [Lb2', Wb2']]
     const flattened = flatten(squareTransposedZip)
 
     flattened.forEach(([layer, weights]) => {
-      layer.setWeights(weights)
+      const layerUnits: number = layer.getConfig().units as number
+      layer.setWeights([weights, zeros([layerUnits])])
     })
   })
 
@@ -156,7 +155,7 @@ function crossoverHiddenLayer(weights: Pair<Tensor>): Pair<Tensor> {
   const crossedOver = crossover(splitted)
 
   // [[T1h, T2t], [T2h, T1t]] => [T1', T2']
-  return crossedOver.map(([h, t]) => h.concat(t, 0)) as Pair<Tensor>
+  return crossedOver.map(([h, t]) => h.concat(t, 1)) as Pair<Tensor>
 }
 
 function crossoverOutputLayer(weights: Pair<Tensor>): Pair<Tensor> {
@@ -172,7 +171,10 @@ function crossoverOutputLayer(weights: Pair<Tensor>): Pair<Tensor> {
   // [[T1h, T2t], [T2h, T1t]] => [T1', T2']
   return crossedOver.map(([h, t]) => h.concat(t, 0)) as Pair<Tensor>
 }
-
+// const model = tf.sequential({layers:[
+//   tf.layers.dense({units:8, inputDim:3}),
+//   tf.layers.dense({units:1 })
+// ]})
 // const layer1 = model.getLayer(null,0)
 // const layer2 = model.getLayer(null,1)
 // const w1=layer1.getWeights()[0]
