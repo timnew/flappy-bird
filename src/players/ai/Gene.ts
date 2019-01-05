@@ -51,8 +51,7 @@ export default class Gene {
 
   shouldFlap(visual: PlayerVisual): boolean {
     const value = tidy(() => {
-      const visualTensor = tensor2d(visual.vector, [4, 1])
-      const input = visualTensor.pad([[0, 1], [0, 0]], 1)
+      const input = tensor2d([...visual.vector, 1], [1, 5])
       const result = this.model.predict(input) as Tensor
 
       return result.dataSync()[0]
