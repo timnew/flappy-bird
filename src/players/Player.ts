@@ -17,23 +17,27 @@ export class PlayerVisual {
 
     return new PlayerVisual([
       speed,
+      bird.velocity,
       x - bird.x,
       2 * halfGapSize,
       gapPosition - bird.y
     ])
   }
 
-  get speed(): number {
+  get horizontalSpeed(): number {
     return this.vector[0]
   }
-  get distanceToNextPipe(): number {
+  get verticalSpeed(): number {
     return this.vector[1]
   }
-  get pipeGap(): number {
+  get distanceToNextPipe(): number {
     return this.vector[2]
   }
-  get heightDifference(): number {
+  get pipeGap(): number {
     return this.vector[3]
+  }
+  get heightDifference(): number {
+    return this.vector[4]
   }
 }
 
