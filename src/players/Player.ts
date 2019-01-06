@@ -101,9 +101,10 @@ export default class Player {
     this.instructBird('flap')
   }
 
-  onDeath() {
+  onDeath(heightOffset: number) {
+    this.liveScore.die(heightOffset)
     this.scoreRecord.mergeIn(this.liveScore)
-    this.liveScore.reset(true)
+    this.liveScore.reset()
     this.debug('Dead: $d', this.scoreRecord.death)
   }
 

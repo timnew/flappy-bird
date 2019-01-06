@@ -97,7 +97,7 @@ export default class Judge implements GameObject<World> {
       .forEach(sprite => {
         const bird = sprite as Bird
         debug('Bird[%s] collides on Pipe[%s]', bird.name, pipe.name)
-        bird.kill()
+        bird.kill(pipe)
         this.playerManager.removeBird(bird)
         this.revivePlayer(bird.player)
       })

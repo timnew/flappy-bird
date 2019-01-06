@@ -25,11 +25,13 @@ export class LiveScore extends Score {
     this.overall = this.distance + this.pipeCount * 500
   }
 
-  reset(increaseDeath: boolean = true) {
+  die(heightOffset: number) {
+    this.death++
+    this.overall -= heightOffset * 50
+  }
+
+  reset() {
     this.overall = this.pipeCount = this.distance = 0
-    if (increaseDeath) {
-      this.death++
-    }
   }
 }
 
@@ -38,6 +40,6 @@ export class ScoreRecord extends Score {
     this.overall = Math.max(this.overall, score.overall)
     this.pipeCount = Math.max(this.pipeCount, score.pipeCount)
     this.distance = Math.max(this.distance, score.distance)
-    this.death += score.death
+    this.death = score.death
   }
 }

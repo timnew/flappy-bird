@@ -6,6 +6,7 @@ import { Rectangle, Sprite, Text, TextStyle } from 'pixi.js'
 import Player from '../players/Player'
 import { ContainerActor } from '../engine/ContainerActor'
 import { typedName } from '../engine/Name'
+import PipeGate from './PipeGate'
 
 export default class Bird extends ContainerActor<World> {
   readonly birdSprite: Sprite
@@ -132,8 +133,8 @@ export default class Bird extends ContainerActor<World> {
     this.state.onFlap()
   }
 
-  kill() {
-    this.state.onKill()
+  kill(byPipe: PipeGate) {
+    this.state.onKill(byPipe)
   }
 }
 
@@ -151,7 +152,7 @@ abstract class BirdState {
 
   onFlap() {}
 
-  onKill() {}
+  onKill(pipe: PipeGate) {}
 
   onHitTop() {}
 
@@ -182,20 +183,24 @@ class BirdLiveState extends BirdState {
     bird.updateRotation()
   }
 
-  onKill() {
-    new BirdDeadState(this.bird)
+  onKill(pipe: PipeGate) {
+    const heightOffset =
+      Math.abs(this.bird.y - pipe.gapPosition) -
+      pipe.halfGapSize +
+      this.bird.height / 2
+    new BirdDeadState(this.bird, heightOffset)
   }
 }
 
 class BirdDeadState extends BirdState {
-  constructor(bird: Bird) {
+  constructor(bird: Bird, heightOffset: number) {
     super(bird, 'Dead', false)
 
     bird.birdSprite.tint = 0xff00cccc
 
     bird.dispose()
 
-    bird.player.onDeath()
+    bird.player.onDeath(heightOffset)
   }
 
   onUpdate(deltaTime: number): void {
