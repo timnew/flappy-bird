@@ -11,7 +11,9 @@ import {
   tidy,
   Tensor,
   tensor2d,
-  zeros
+  zeros,
+  randomNormal,
+  add
 } from '@tensorflow/tfjs'
 import { PlayerVisual } from '../Player'
 
@@ -106,33 +108,33 @@ export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
     // [[Wa1', Wb1'], [Wa2', Wb2']] => [[Wa1', Wa2'], [Wb1', Wb2']]
     const crossoveredWeights = transpose(transposedCrossoveredWeights)
 
+    // [[Wa1', Wb1'], [Wa2', Wb2']] => [[Wa1", Wa2"], [Wb1", Wb2"]]
+    const mutated = crossoveredWeights.map(p => p.map(mutate))
+
     // [Ga', Gb'] => [[La1', La2'], [Lb1', Lb2']]
     const newLayers = newGenes.map(extractLayer)
 
     // [
     //    [[La1', La2'], [Lb1', Lb2']],
-    //    [[Wa1', Wa2'], [Wb1', Wb2']]
+    //    [[Wa1", Wa2"], [Wb1", Wb2"]]
     // ]
-    const zip = [newLayers, crossoveredWeights] as Twin<
-      DPair<Layer>,
-      DPair<Tensor>
-    >
+    const zip = [newLayers, mutated] as Twin<DPair<Layer>, DPair<Tensor>>
 
     // [
-    //    [[La1', La2'], [Wa1', Wa2']],
-    //    [[Lb1', Lb2'], [Wb1', Wb2']]
+    //    [[La1', La2'], [Wa1", Wa2"]],
+    //    [[Lb1', Lb2'], [Wb1", Wb2"]]
     // ]
     const transposedZip = transpose(zip)
 
     // [
-    //    [[La1', Wa1'], [La2', Wa2']],
-    //    [[Lb1', Wb1'], [Lb2', Wb2']]
+    //    [[La1', Wa1"], [La2', Wa2"]],
+    //    [[Lb1', Wb1"], [Lb2', Wb2"]]
     // ]
     const squareTransposedZip = transposedZip.map(p =>
       transpose(p as any)
     ) as DPair<Twin<Layer, Tensor>>
 
-    // [[La1', Wa1'], [La2', Wa2'], [Lb1', Wb1'], [Lb2', Wb2']]
+    // [[La1', Wa1"], [La2', Wa2"], [Lb1', Wb1"], [Lb2', Wb2"]]
     const flattened = flatten(squareTransposedZip)
 
     flattened.forEach(([layer, weights]) => {
@@ -142,6 +144,11 @@ export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
   })
 
   return newGenes
+}
+
+function mutate(input: Tensor, stdError = 0.9): Tensor {
+  const noise = randomNormal(input.shape, 0, stdError)
+  return add(input, noise)
 }
 
 function crossoverHiddenLayer(weights: Pair<Tensor>): Pair<Tensor> {
