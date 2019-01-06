@@ -38,7 +38,7 @@ function crossover<T>([[h1, t1], [h2, t2]]: Pair<Pair<T>>): Pair<Pair<T>> {
 
 export const HIDDEN_LAYER_SIZE: number = 10
 export const HIDDEN_LAYER_HALF_SIZE = HIDDEN_LAYER_SIZE / 2
-export const INPUT_DIM: number = 5
+export const INPUT_DIM: number = 6
 
 export default class Gene {
   constructor(readonly name: Name, readonly model: Sequential) {}
@@ -49,7 +49,7 @@ export default class Gene {
 
   shouldFlap(visual: PlayerVisual): boolean {
     const value = tidy(() => {
-      const input = tensor2d([...visual.vector, 1], [1, 5])
+      const input = tensor2d([...visual.vector, 1], [1, 6])
       const result = this.model.predict(input) as Tensor
 
       return result.dataSync()[0]
