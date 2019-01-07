@@ -13,7 +13,7 @@ import flatten from 'lodash.flatten'
 // [X] 5. Mutation Rate
 // [X] 6. Crossover Point
 
-class Evolution {
+export default class Evolution {
   constructor(readonly players: Set<AiPlayer>) {}
 
   run() {
