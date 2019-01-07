@@ -3,14 +3,14 @@ import { Set } from 'typescript-collections'
 import shuffle from 'lodash.shuffle'
 import maxBy from 'lodash.maxby'
 import chunk from 'lodash.chunk'
-import Gene, { Pair } from './ai/Gene'
+import Gene, { crossoverAndMutate, Group } from './ai/Gene'
 import flatten from 'lodash.flatten'
 
 // [X] 1. Fitness should calculate vertical distance from the center of gap on death
 // [X] 2. Input should include vertical velocity
 // [X] 3. Better selection algorithm
 // [X] 4. Crossover Rate
-// [ ] 5. Mutation Rate
+// [X] 5. Mutation Rate
 // [X] 6. Crossover Point
 
 class Evolution {
@@ -18,14 +18,15 @@ class Evolution {
 
   run() {
     const players = this.players
-    const addCallback = players.add.bind(players)
+    const addPlayer = players.add.bind(players)
     const selected = this.tournamentSelection(players.toArray(), 2, 2)
     players.clear()
 
     const { crossoverGroup, remainGroup } = this.crossoverDivide(selected)
-    remainGroup.forEach(addCallback)
+    remainGroup.forEach(addPlayer)
 
-    const crossovered = this.crossover(crossoverGroup)
+    const newGeneration = this.nextGeneration(crossoverGroup)
+    newGeneration.forEach(addPlayer)
   }
 
   tournamentSelection(
@@ -73,14 +74,14 @@ class Evolution {
     }
   }
 
-  crossover(players: AiPlayer[], mutateRate: number = 0.1): AiPlayer[] {
+  nextGeneration(players: AiPlayer[], mutateRate: number = 0.1): AiPlayer[] {
     const pairs = chunk(players, 2)
-    const crossovered = pairs.map(group => {
-      const genes = group.map(player => player.gene) as Pair<Gene>
+    const afterCrossover = pairs.map(group => {
+      const genes = group.map(player => player.gene) as Group<Gene>
 
-      return crossover(genes).map(g => new AiPlayer(g))
+      return crossoverAndMutate(genes, mutateRate).map(g => new AiPlayer(g))
     })
 
-    return flatten(crossovered)
+    return flatten(afterCrossover)
   }
 }

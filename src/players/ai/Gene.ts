@@ -61,7 +61,10 @@ export function createGene(name: Name): Gene {
   )
 }
 
-export function crossover(genes: Group<Gene>): Group<Gene> {
+export function crossoverAndMutate(
+  genes: Group<Gene>,
+  mutateRate: number
+): Group<Gene> {
   const parentName = `[${genes.map(g => g.name).join('x')}]`
   const newGenes = [
     createGene(typedName(parentName, '0')),
@@ -76,38 +79,35 @@ export function crossover(genes: Group<Gene>): Group<Gene> {
     const indexShift = scalar(HIDDEN_LAYER_SIZE, 'int32')
     const crossoverPoint = generateCrossoverPoint()
 
-    const crossoverIndices = [
-      indices.add(crossoverPoint.mul(indexShift)),
-      indices.add(inverseCrossoverPoint(crossoverPoint).mul(indexShift))
-    ] as Group<Tensor1D>
+    const crossoverIndices = crossoverPoint.map(cp =>
+      indices.add(cp.mul(indexShift))
+    ) as Group<Tensor1D>
 
     const afterCrossover = crossoverIndices.map(i =>
       gather(weightCube, i, 1)
     ) as Group<Tensor2D>
 
-    transposeGroup([newGenes, afterCrossover]).map(
-      ([g, w]: Pair<Gene, Tensor2D>) => applyWeights(g, rebuildWeights(w))
+    const mutated = afterCrossover.map(m => mutate(m, mutateRate)) as Group<
+      Tensor2D
+    >
+
+    transposeGroup([newGenes, mutated]).map(([g, w]: Pair<Gene, Tensor2D>) =>
+      applyWeights(g, rebuildWeights(w))
     )
   })
 
   return newGenes
 }
 
-function generateCrossoverPoint(): Tensor1D {
-  let result: Tensor1D
-  do {
-    result = randomUniform([HIDDEN_LAYER_SIZE - 2], 0, 2, 'bool')
-  } while (result.all().logicalOr(result.logicalNot().all()))
-
-  return result
-}
-
-function inverseCrossoverPoint(cp: Tensor1D) {
-  return cp
+function generateCrossoverPoint(): Group<Tensor1D> {
+  const cp: Tensor1D = randomUniform([HIDDEN_LAYER_SIZE - 2], 0, 2, 'bool')
+  const cpc: Tensor1D = cp
     .clone()
     .toBool()
     .logicalNot()
     .toInt()
+
+  return [cp, cpc]
 }
 
 function extractWeights(gene: Gene): Tensor2D {
@@ -135,6 +135,21 @@ function rebuildWeights(weightsMatrix: Tensor2D): Group<Tensor[]> {
     [outputKernels.transpose(), zeros([1])]
   ]
 }
+
+function mutate(
+  weightsMatrix: Tensor2D,
+  mutateRate: number,
+  mutateStrength: number = 2
+): Tensor2D {
+  const shape = weightsMatrix.shape
+  const mutation = randomUniform(shape, -mutateStrength, mutateStrength)
+  const mutationSieve = randomUniform(shape).less(mutateRate)
+  const sievedMutation = mutation.mul(mutationSieve)
+
+  return weightsMatrix.add(sievedMutation)
+}
+
+// CROSS OVER
 
 // const HIDDEN_LAYER_SIZE = 5
 // const INPUT_DIM = 3
@@ -178,6 +193,8 @@ function rebuildWeights(weightsMatrix: Tensor2D): Group<Tensor[]> {
 // w1.print()
 // w2.print()
 
+// APPLY WEIGHTS
+
 // const [w11, w12] = w1.split([INPUT_DIM, 1])
 // w11.print()
 // w12.transpose().print()
@@ -197,3 +214,18 @@ function rebuildWeights(weightsMatrix: Tensor2D): Group<Tensor[]> {
 //  model.getLayer(undefined,0).setWeights(weights[0])
 //  model.getLayer(undefined,1).setWeights(weights[1])
 // }
+
+// MUTATION
+
+// const shape=[4,5]
+// const mutationRate = 0.1
+
+// const mutation = tf.randomUniform(shape,-2,2)
+// mutation.print()
+// const mutationSieveRaw = tf.randomUniform(shape)
+// mutationSieveRaw.print()
+// const mutationSieve = mutationSieveRaw.less(mutationRate)
+// mutationSieve.print()
+
+// const sievedMutation = mutation.mul(mutationSieve)
+// sievedMutation.print()
