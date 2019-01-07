@@ -1,3 +1,6 @@
+import createDebug from 'debug'
+const debug = createDebug('AI:Evolution')
+
 import AiPlayer from './ai/AiPlayer'
 import { Set } from 'typescript-collections'
 import shuffle from 'lodash.shuffle'
@@ -14,16 +17,22 @@ import flatten from 'lodash.flatten'
 // [X] 6. Crossover Point
 
 export default class Evolution {
+  static generation: number = 0
   constructor(readonly players: Set<AiPlayer>) {}
 
   run() {
     const players = this.players
-    const addPlayer = players.add.bind(players)
-    const selected = this.tournamentSelection(players.toArray(), 2, 2)
+    const addPlayer = (player: AiPlayer) => {
+      debug('Add player %s', player.name)
+      players.add(player)
+    }
+    const selected = this.tournamentSelection(players.toArray())
     players.clear()
 
-    const { crossoverGroup, remainGroup } = this.crossoverDivide(selected)
-    remainGroup.forEach(addPlayer)
+    selected.forEach(addPlayer)
+    const crossoverGroup = selected
+    // const { crossoverGroup, remainGroup } = this.crossoverDivide(selected)
+    // remainGroup.forEach(addPlayer)
 
     const newGeneration = this.nextGeneration(crossoverGroup)
     newGeneration.forEach(addPlayer)
@@ -75,11 +84,20 @@ export default class Evolution {
   }
 
   nextGeneration(players: AiPlayer[], mutateRate: number = 0.1): AiPlayer[] {
+    Evolution.generation++
+    let index = -2
     const pairs = chunk(players, 2)
     const afterCrossover = pairs.map(group => {
       const genes = group.map(player => player.gene) as Group<Gene>
 
-      return crossoverAndMutate(genes, mutateRate).map(g => new AiPlayer(g))
+      index += 2
+
+      return crossoverAndMutate(
+        Evolution.generation,
+        index,
+        genes,
+        mutateRate
+      ).map(g => new AiPlayer(g))
     })
 
     return flatten(afterCrossover)

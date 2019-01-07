@@ -62,13 +62,15 @@ export function createGene(name: Name): Gene {
 }
 
 export function crossoverAndMutate(
+  generation: number,
+  index: number,
   genes: Group<Gene>,
   mutateRate: number
 ): Group<Gene> {
-  const parentName = `[${genes.map(g => g.name).join('x')}]`
+  const parentName = `G${generation}`
   const newGenes = [
-    createGene(typedName(parentName, '0')),
-    createGene(typedName(parentName, '1'))
+    createGene(typedName(parentName, String(index))),
+    createGene(typedName(parentName, String(index + 1)))
   ] as Group<Gene>
 
   tidy(() => {
@@ -139,7 +141,7 @@ function rebuildWeights(weightsMatrix: Tensor2D): Group<Tensor[]> {
 function mutate(
   weightsMatrix: Tensor2D,
   mutateRate: number,
-  mutateStrength: number = 2
+  mutateStrength: number = 0.5
 ): Tensor2D {
   const shape = weightsMatrix.shape
   const mutation = randomUniform(shape, -mutateStrength, mutateStrength)

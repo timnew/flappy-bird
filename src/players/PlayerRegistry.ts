@@ -17,7 +17,7 @@ export default class PlayerRegistry {
 
   createAi(count: number) {
     for (let i = 0; i < count; i++) {
-      this.addAi(createGene(typedName('G', String(i))))
+      this.addAi(createGene(typedName('G0', String(i))))
     }
   }
 
