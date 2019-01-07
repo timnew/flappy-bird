@@ -100,7 +100,7 @@ export function crossoverAndMutate(
 }
 
 function generateCrossoverPoint(): Group<Tensor1D> {
-  const cp: Tensor1D = randomUniform([HIDDEN_LAYER_SIZE - 2], 0, 2, 'bool')
+  const cp: Tensor1D = randomUniform([HIDDEN_LAYER_SIZE], 0, 2, 'bool')
   const cpc: Tensor1D = cp
     .clone()
     .toBool()
