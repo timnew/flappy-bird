@@ -3,6 +3,8 @@
     "@tensorflow/tfjs": "^0.14.1",
     "@types/debug": "^0.0.31",
     "@types/events": "^1.2.0",
+    "@types/lodash.chunk": "^4.2.4",
+    "@types/lodash.flatten": "^4.4.4",
     "@types/lodash.maxby": "^4.6.4",
     "@types/lodash.shuffle": "^4.2.4",
     "@types/pixi.js": "^4.8.6",

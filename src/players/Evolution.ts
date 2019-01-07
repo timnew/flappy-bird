@@ -2,51 +2,85 @@ import AiPlayer from './ai/AiPlayer'
 import { Set } from 'typescript-collections'
 import shuffle from 'lodash.shuffle'
 import maxBy from 'lodash.maxby'
+import chunk from 'lodash.chunk'
+import Gene, { Pair } from './ai/Gene'
+import flatten from 'lodash.flatten'
 
 // [X] 1. Fitness should calculate vertical distance from the center of gap on death
 // [X] 2. Input should include vertical velocity
 // [X] 3. Better selection algorithm
-// [ ] 4. Crossover Rate
+// [X] 4. Crossover Rate
 // [ ] 5. Mutation Rate
-// [ ] 6. Crossover Point
+// [X] 6. Crossover Point
 
 class Evolution {
-  static readonly crossoverRate = 0.8
-  static readonly mutateRate = 0.1
-
-  constructor(readonly playerSet: Set<AiPlayer>) {}
+  constructor(readonly players: Set<AiPlayer>) {}
 
   run() {
-    const playerSet = this.playerSet
-    let players = playerSet.toArray()
-    players = this.tournamentSelection(players)
-    players = this.crossover(players)
-    playerSet.clear()
-    players.forEach(playerSet.add.bind(playerSet))
+    const players = this.players
+    const addCallback = players.add.bind(players)
+    const selected = this.tournamentSelection(players.toArray(), 2, 2)
+    players.clear()
+
+    const { crossoverGroup, remainGroup } = this.crossoverDivide(selected)
+    remainGroup.forEach(addCallback)
+
+    const crossovered = this.crossover(crossoverGroup)
   }
 
   tournamentSelection(
     players: AiPlayer[],
-    matchSize: number = 2,
-    matchRound: number = 1
+    groupSize: number = 2,
+    rounds: number = 1
   ): AiPlayer[] {
-    let remaining = players
-    shuffle(remaining)
-    const selected: AiPlayer[] = []
+    const shuffled = players
+    shuffle(shuffled)
 
-    while (remaining.length > 0) {
-      const candidates = remaining.slice(0, matchSize)
-      selected.push(maxBy(candidates, p => p.liveScore.overall)!)
+    const selected = chunk(shuffled, groupSize).map(group =>
+      maxBy(group, p => p.liveScore.overall)
+    ) as AiPlayer[]
 
-      remaining = remaining.slice(matchSize)
-    }
-
-    if (matchRound == 1) {
+    if (rounds == 1) {
       return selected
     }
 
-    return this.tournamentSelection(selected, matchSize, matchRound - 1)
+    return this.tournamentSelection(selected, groupSize, rounds - 1)
   }
 
-  crossover(players: AiPlayer[]): AiPlayer[] {}
+  crossoverDivide(
+    players: AiPlayer[],
+    crossoverRate = 0.8
+  ): { crossoverGroup: AiPlayer[]; remainGroup: AiPlayer[] } {
+    const crossoverGroup: AiPlayer[] = []
+    const remainGroup: AiPlayer[] = []
+
+    players.forEach(player => {
+      if (Math.random() < crossoverRate) {
+        crossoverGroup.push(player)
+      } else {
+        remainGroup.push(player)
+      }
+    })
+
+    if (crossoverGroup.length % 2 == 1) {
+      // ensure crossoverGroup contains 2n players
+      remainGroup.push(crossoverGroup.pop()!)
+    }
+
+    return {
+      crossoverGroup,
+      remainGroup
+    }
+  }
+
+  crossover(players: AiPlayer[], mutateRate: number = 0.1): AiPlayer[] {
+    const pairs = chunk(players, 2)
+    const crossovered = pairs.map(group => {
+      const genes = group.map(player => player.gene) as Pair<Gene>
+
+      return crossover(genes).map(g => new AiPlayer(g))
+    })
+
+    return flatten(crossovered)
+  }
 }

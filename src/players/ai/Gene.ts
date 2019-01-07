@@ -3,7 +3,6 @@ const debug = createDebug('AI:Gene')
 
 import Name, { typedName } from '../../engine/Name'
 
-import { Layer } from '@tensorflow/tfjs-layers/dist/exports_layers'
 import {
   layers,
   Sequential,
@@ -11,41 +10,31 @@ import {
   tidy,
   Tensor,
   tensor2d,
+  concat,
+  Tensor2D,
+  gather,
+  range,
+  randomUniform,
+  Tensor1D,
   zeros,
-  randomNormal,
-  add
+  scalar
 } from '@tensorflow/tfjs'
 import { PlayerVisual } from '../Player'
 
-type Pair<T> = [T, T]
-type DPair<T> = Pair<Pair<T>>
-type Twin<T1, T2> = [T1, T2]
-
-function transpose<T1, T2>([[a1, a2], [b1, b2]]: Twin<
-  Pair<T1>,
-  Pair<T2>
->): Pair<Twin<T1, T2>> {
+export type Group<T> = [T, T]
+export type Pair<T1, T2> = [T1, T2]
+function transposeGroup<T1, T2>([[a1, a2], [b1, b2]]: Pair<
+  Group<T1>,
+  Group<T2>
+>): Group<Pair<T1, T2>> {
   return [[a1, b1], [a2, b2]]
 }
 
-function flatten<T>([[a, b], [c, d]]: DPair<T>): T[] {
-  return [a, b, c, d]
-}
-
-function crossover<T>([[h1, t1], [h2, t2]]: Pair<Pair<T>>): Pair<Pair<T>> {
-  return [[h1, t2], [h2, t1]]
-}
-
 export const HIDDEN_LAYER_SIZE: number = 10
-export const HIDDEN_LAYER_HALF_SIZE = HIDDEN_LAYER_SIZE / 2
 export const INPUT_DIM: number = 6
 
 export default class Gene {
   constructor(readonly name: Name, readonly model: Sequential) {}
-
-  crossover(anotherGene: Gene): Pair<Gene> {
-    return crossoverGene([this, anotherGene])
-  }
 
   shouldFlap(visual: PlayerVisual): boolean {
     const value = tidy(() => {
@@ -72,134 +61,139 @@ export function createGene(name: Name): Gene {
   )
 }
 
-function extractLayer(gene: Gene): Pair<Layer> {
-  return [gene.model.getLayer(undefined, 0), gene.model.getLayer(undefined, 1)]
-}
-
-export function crossoverGene(genes: Pair<Gene>): Pair<Gene> {
+export function crossover(genes: Group<Gene>): Group<Gene> {
   const parentName = `[${genes.map(g => g.name).join('x')}]`
-
-  debug('Crossover %s', parentName)
-
-  // [Ga', Gb']
-  const newGenes = genes.map((_, i) =>
-    createGene(typedName(parentName, String(i)))
-  ) as Pair<Gene>
+  const newGenes = [
+    createGene(typedName(parentName, '0')),
+    createGene(typedName(parentName, '1'))
+  ] as Group<Gene>
 
   tidy(() => {
-    // [Ga, Gb] => [[La1, La2], [Lb1, Lb2]]
-    const layers = genes.map(extractLayer)
+    const weightCube = concat(genes.map(extractWeights), 1)
 
-    // [[La1, La2], [Lb1, Lb2]] => [[Wa1, Wa2], [Wb1, Wb2]]
-    const weights = layers.map(p =>
-      p.map(layer => layer.getWeights()[0])
-    ) as DPair<Tensor>
+    const indices = range(0, HIDDEN_LAYER_SIZE, 1, 'int32')
 
-    // [[Wa1, Wa2], [Wb1, Wb2]] => [[Wa1, Wb1], [Wa2, Wb2]]
-    const transposedWeights = transpose(weights)
+    const indexShift = scalar(HIDDEN_LAYER_SIZE, 'int32')
+    const crossoverPoint = generateCrossoverPoint()
 
-    const crossoverFunctions = [crossoverHiddenLayer, crossoverOutputLayer]
+    const crossoverIndices = [
+      indices.add(crossoverPoint.mul(indexShift)),
+      indices.add(inverseCrossoverPoint(crossoverPoint).mul(indexShift))
+    ] as Group<Tensor1D>
 
-    // [[Wa1, Wb1], [Wa2, Wb2]] => [[Wa1', Wb1'], [Wa2', Wb2']]
-    const transposedCrossoveredWeights = transposedWeights.map(
-      (weights, index) => crossoverFunctions[index](weights)
-    ) as DPair<Tensor>
+    const afterCrossover = crossoverIndices.map(i =>
+      gather(weightCube, i, 1)
+    ) as Group<Tensor2D>
 
-    // [[Wa1', Wb1'], [Wa2', Wb2']] => [[Wa1', Wa2'], [Wb1', Wb2']]
-    const crossoveredWeights = transpose(transposedCrossoveredWeights)
-
-    // [[Wa1', Wb1'], [Wa2', Wb2']] => [[Wa1", Wa2"], [Wb1", Wb2"]]
-    const mutated = crossoveredWeights.map(p => p.map(mutate))
-
-    // [Ga', Gb'] => [[La1', La2'], [Lb1', Lb2']]
-    const newLayers = newGenes.map(extractLayer)
-
-    // [
-    //    [[La1', La2'], [Lb1', Lb2']],
-    //    [[Wa1", Wa2"], [Wb1", Wb2"]]
-    // ]
-    const zip = [newLayers, mutated] as Twin<DPair<Layer>, DPair<Tensor>>
-
-    // [
-    //    [[La1', La2'], [Wa1", Wa2"]],
-    //    [[Lb1', Lb2'], [Wb1", Wb2"]]
-    // ]
-    const transposedZip = transpose(zip)
-
-    // [
-    //    [[La1', Wa1"], [La2', Wa2"]],
-    //    [[Lb1', Wb1"], [Lb2', Wb2"]]
-    // ]
-    const squareTransposedZip = transposedZip.map(p =>
-      transpose(p as any)
-    ) as DPair<Twin<Layer, Tensor>>
-
-    // [[La1', Wa1"], [La2', Wa2"], [Lb1', Wb1"], [Lb2', Wb2"]]
-    const flattened = flatten(squareTransposedZip)
-
-    flattened.forEach(([layer, weights]) => {
-      const layerUnits: number = layer.getConfig().units as number
-      layer.setWeights([weights, zeros([layerUnits])])
-    })
+    transposeGroup([newGenes, afterCrossover]).map(
+      ([g, w]: Pair<Gene, Tensor2D>) => applyWeights(g, rebuildWeights(w))
+    )
   })
 
   return newGenes
 }
 
-function mutate(input: Tensor, stdError = 0.9): Tensor {
-  const noise = randomNormal(input.shape, 0, stdError)
-  return add(input, noise)
+function generateCrossoverPoint(): Tensor1D {
+  let result: Tensor1D
+  do {
+    result = randomUniform([HIDDEN_LAYER_SIZE - 2], 0, 2, 'bool')
+  } while (result.all().logicalOr(result.logicalNot().all()))
+
+  return result
 }
 
-function crossoverHiddenLayer(weights: Pair<Tensor>): Pair<Tensor> {
-  // [T1, T2] => [[T1h, T1t], [T2h, T2t]]
-  const splitted = weights.map(weight => [
-    weight.slice([0, 0], [INPUT_DIM, HIDDEN_LAYER_HALF_SIZE]),
-    weight.slice([0, HIDDEN_LAYER_HALF_SIZE])
-  ]) as DPair<Tensor>
-
-  // [[T1h, T1t], [T2h, T2t]] => [[T1h, T2t], [T2h, T1t]]
-  const crossedOver = crossover(splitted)
-
-  // [[T1h, T2t], [T2h, T1t]] => [T1', T2']
-  return crossedOver.map(([h, t]) => h.concat(t, 1)) as Pair<Tensor>
+function inverseCrossoverPoint(cp: Tensor1D) {
+  return cp
+    .clone()
+    .toBool()
+    .logicalNot()
+    .toInt()
 }
 
-function crossoverOutputLayer(weights: Pair<Tensor>): Pair<Tensor> {
-  // [T1, T2] => [[T1h, T1t], [T2h, T2t]]
-  const splitted = weights.map(weight => [
-    weight.slice([0, 0], [HIDDEN_LAYER_HALF_SIZE, 1]),
-    weight.slice([HIDDEN_LAYER_HALF_SIZE, 0])
-  ]) as DPair<Tensor>
-
-  // [[T1h, T1t], [T2h, T2t]] => [[T1h, T2t], [T2h, T1t]]
-  const crossedOver = crossover(splitted)
-
-  // [[T1h, T2t], [T2h, T1t]] => [T1', T2']
-  return crossedOver.map(([h, t]) => h.concat(t, 0)) as Pair<Tensor>
+function extractWeights(gene: Gene): Tensor2D {
+  const model = gene.model
+  return concat([
+    model.getLayer(undefined, 0).getWeights()[0],
+    model
+      .getLayer(undefined, 1)
+      .getWeights()[0]
+      .transpose()
+  ]) as Tensor2D
 }
-// const model = tf.sequential({layers:[
-//   tf.layers.dense({units:8, inputDim:3}),
+
+function applyWeights(gene: Gene, weights: Group<Tensor[]>) {
+  const model = gene.model
+
+  weights.forEach((w, i) => model.getLayer(undefined, i).setWeights(w))
+}
+
+function rebuildWeights(weightsMatrix: Tensor2D): Group<Tensor[]> {
+  const [hiddenKernels, outputKernels] = weightsMatrix.split([INPUT_DIM, 1])
+
+  return [
+    [hiddenKernels, zeros([HIDDEN_LAYER_SIZE])],
+    [outputKernels.transpose(), zeros([1])]
+  ]
+}
+
+// const HIDDEN_LAYER_SIZE = 5
+// const INPUT_DIM = 3
+
+// const modelA = tf.sequential({layers:[
+//   tf.layers.dense({units:HIDDEN_LAYER_SIZE, inputDim:INPUT_DIM}),
 //   tf.layers.dense({units:1 })
 // ]})
-// const layer1 = model.getLayer(null,0)
-// const layer2 = model.getLayer(null,1)
-// const w1=layer1.getWeights()[0]
-// const w2=layer2.getWeights()[0]
+// const modelB = tf.sequential({layers:[
+//   tf.layers.dense({units:HIDDEN_LAYER_SIZE, inputDim:INPUT_DIM}),
+//   tf.layers.dense({units:1 })
+// ]})
+// const extractWeights = (model)=>tf.concat([
+//  model.getLayer(undefined,0).getWeights()[0],
+//  model.getLayer(undefined,1).getWeights()[0].transpose()
+// ])
+
+// const wA = extractWeights(modelA)
+// const wB = extractWeights(modelB)
+
+// tf.print(wA)
+// tf.print(wB)
+
+// const w = tf.concat([wA, wB],1)
+// //w.print()
+
+// const wt = w
+
+// const indices = tf.range(0, HIDDEN_LAYER_SIZE, 1,'int32')
+// //const one = tf.ones([HIDDEN_LAYER_SIZE], 'int32')
+// const cp = tf.randomUniform([HIDDEN_LAYER_SIZE], 0, 2,'int32')
+// const cpc = cp.clone().toBool().logicalNot().toInt()
+// indices.print()
+// cp.print()
+// cpc.print()
+
+// const offset = tf.scalar(5,'int32')
+
+// const w1 = tf.gather(wt, indices.add(cp.mul(offset)) , 1)
+// const w2 = tf.gather(wt, indices.add(cpc.mul(offset)), 1)
 // w1.print()
 // w2.print()
 
-// tf.print(w1.shape)
-// tf.print(w2.shape)
-
-// const w11 = w1.slice([0,0],[4,3])
-// const w12 = w1.slice([0,3])
-// const w21 = w2.slice([0,0],[3,1])
-// const w22 = w2.slice([3,0])
+// const [w11, w12] = w1.split([INPUT_DIM, 1])
 // w11.print()
-// w12.print()
-// w21.print()
-// w22.print()
+// w12.transpose().print()
 
-// w11.concat(w12, 0).print()
-// w21.concat(w22).print()
+// const nw=[
+//   [
+//   	w11,
+//   	tf.zeros([HIDDEN_LAYER_SIZE])
+// 	],
+//   [
+//   	w12.transpose(),
+//   	tf.zeros([1])
+//   ]
+// ]
+
+// const applyWeights = (model, weights)=>{
+//  model.getLayer(undefined,0).setWeights(weights[0])
+//  model.getLayer(undefined,1).setWeights(weights[1])
+// }
