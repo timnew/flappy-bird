@@ -1,6 +1,6 @@
 import { ContainerActor } from '../engine/ContainerActor'
 import World from './World'
-import { Sprite, loaders } from 'pixi.js'
+import { Sprite, loaders, Text, TextStyle } from 'pixi.js'
 import Bird from './Bird'
 import { typedName } from '../engine/Name'
 
@@ -9,6 +9,7 @@ export default class PipeGate extends ContainerActor<World> {
 
   readonly topPipe: Pipe
   readonly bottomPipe: Pipe
+  readonly label: Text
 
   constructor(
     world: World,
@@ -26,6 +27,7 @@ export default class PipeGate extends ContainerActor<World> {
       'topPipe',
       gapPosition - halfGapSize
     )
+
     this.bottomPipe = new Pipe(
       world.resources,
       0,
@@ -33,8 +35,28 @@ export default class PipeGate extends ContainerActor<World> {
       gapPosition + halfGapSize
     )
 
+    this.label = this.createLabel()
+
     this.addChild(this.topPipe)
     this.addChild(this.bottomPipe)
+    this.addChild(this.label)
+  }
+
+  private createLabel(): Text {
+    const content = `${this.gapPosition} ± ${this.halfGapSize}`
+
+    const labelStyle = new TextStyle({
+      fontFamily: 'Arial',
+      fontSize: 16,
+      fill: '#ffffff'
+    })
+    const text = new Text(content, labelStyle)
+
+    text.anchor.set(0.5)
+    text.x = this.topPipe.width / 2
+    text.y = this.gapPosition
+
+    return text
   }
 
   get tint(): number {

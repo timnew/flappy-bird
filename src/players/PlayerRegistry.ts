@@ -4,7 +4,7 @@ const debug = createDebug('app:PlayerRegistry')
 import HumanPlayer from '../engine/HumanPlayer'
 import Player from './Player'
 import { Dictionary, Set } from 'typescript-collections'
-import Name, { typedName } from '../engine/Name'
+import Name, { typedName, singletonName } from '../engine/Name'
 import { KeyBinding } from '../engine/KeyboardListener'
 import AiPlayer from './ai/AiPlayer'
 import Gene, { createGene } from './ai/Gene'
@@ -17,7 +17,7 @@ export default class PlayerRegistry {
 
   createAi(count: number) {
     for (let i = 0; i < count; i++) {
-      this.addAi(createGene(typedName('G0', String(i))))
+      this.addAi(createGene(singletonName(`G0-${i}`)))
     }
   }
 
