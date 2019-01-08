@@ -22,6 +22,22 @@ import Name, { typedName } from '../engine/Name'
 // [X] 3. Cap and normalize input vector // Implemented by Add an activation layer
 // [X] 4. Review model generation/mutation, make sure no input factors is way to overpowered!
 
+function nameOnly(player: any): string {
+  return String(player.name)
+}
+
+function nameAndScore(player: any): string {
+  return `${player.name.toString()}[${Math.round(player.lastScore.overall)}]`
+}
+
+function dumpNames(players: any[]): string {
+  return `[${players.map(p => nameOnly(p)).join(', ')}]`
+}
+
+function dumpNamesWithScore(players: any[]): string {
+  return `[${players.map(p => nameAndScore(p)).join(', ')}]`
+}
+
 export default class Evolution {
   static generation: number = 0
 
@@ -30,28 +46,42 @@ export default class Evolution {
     Evolution.generation++
   }
 
-  generateName(): Name {
-    return typedName(`G${Evolution.generation}`, String(this.index++))
+  generateName(parent: Name | Name[], type: string): Name {
+    if (parent instanceof Array) {
+      return typedName(
+        parent.map(p => p.localName).join('X'),
+        `${type}${Evolution.generation}-${this.index++}`
+      )
+    } else {
+      return typedName(
+        parent.localName,
+        `${type}${Evolution.generation}-${this.index++}`
+      )
+    }
   }
 
   run() {
-    const players = this.players
+    const players = this.players.toArray()
+    this.players.clear()
+
+    debug('All players: %s', dumpNamesWithScore(players))
+
     const addPlayer = (player: AiPlayer) => {
-      debug('Add player %s', player.name)
-      players.add(player)
+      this.players.add(player)
     }
-    const selected = this.tournamentSelection(players.toArray(), 2, 2)
-    players.clear()
+    const selected = this.tournamentSelection(players, 2, 2)
 
     selected.forEach(addPlayer)
 
-    // const { crossoverGroup, remainGroup } = this.crossoverDividePlayers(selected)
-    // remainGroup.forEach(addPlayer)
+    const { crossoverGroup, remainGroup } = this.crossoverDividePlayers(
+      selected
+    )
+    remainGroup.forEach(addPlayer)
 
-    this.crossoverPlayers(selected).forEach(addPlayer)
+    this.crossoverPlayers(crossoverGroup).forEach(addPlayer)
 
-    this.mutatePlayers(selected, 0.1, 2).forEach(addPlayer)
-    this.mutatePlayers(selected, 0.5, 0.5).forEach(addPlayer)
+    this.mutatePlayers(selected, 'M', 0.1, 2).forEach(addPlayer)
+    this.mutatePlayers(selected, 'm', 0.5, 0.5).forEach(addPlayer)
   }
 
   tournamentSelection(
@@ -59,13 +89,20 @@ export default class Evolution {
     groupSize: number = 2,
     rounds: number = 1
   ): AiPlayer[] {
+    debug(`Start tournament round ${rounds}`)
     const shuffled = players
     shuffle(shuffled)
 
-    const selected = chunk(shuffled, groupSize).map(group =>
-      maxBy(group, p => p.liveScore.overall)
-    ) as AiPlayer[]
+    const selected = chunk(shuffled, groupSize).map(group => {
+      debug('Compete: %s', dumpNamesWithScore(group))
+      const winner = maxBy(group, p => p.lastScore.overall) as AiPlayer
 
+      debug('Winner: %s', nameAndScore(winner))
+
+      return winner
+    }) as AiPlayer[]
+
+    debug(`Tournament #${rounds} finished`)
     if (rounds == 1) {
       return selected
     }
@@ -104,30 +141,51 @@ export default class Evolution {
     mutateRate: number = 0.01,
     mutateStrength: number = 0.5
   ): AiPlayer[] {
+    debug('Crossover players: %s', dumpNames(players))
     const pairs = chunk(players, 2)
     const afterCrossover = pairs.map(group => {
+      const parentNames = group.map(p => p.name)
       const genes = group.map(player => player.gene) as Group<Gene>
 
-      return crossoverAndMutateGene(
+      const newPlayers = crossoverAndMutateGene(
         genes,
-        [this.generateName(), this.generateName()] as Group<Name>,
+        [
+          this.generateName(parentNames, 'C'),
+          this.generateName(parentNames, 'C')
+        ] as Group<Name>,
         mutateRate,
         mutateStrength
       ).map(g => new AiPlayer(g))
+
+      debug('Cross over: %s => %s', dumpNames(group), dumpNames(newPlayers))
+
+      return newPlayers
     })
+
+    debug('Crossover finished')
 
     return flatten(afterCrossover)
   }
 
   mutatePlayers(
     players: AiPlayer[],
+    type: string,
     mutateRate: number,
     mutateStrength: number
   ): AiPlayer[] {
     return players
-      .map(p =>
-        mutateGene(p.gene, this.generateName(), mutateRate, mutateStrength)
-      )
+      .map(p => {
+        const newPlayer = mutateGene(
+          p.gene,
+          this.generateName(p.name, type),
+          mutateRate,
+          mutateStrength
+        )
+
+        debug(`Mutate: ${nameOnly(p)} -> ${nameOnly(newPlayer)}`)
+
+        return newPlayer
+      })
       .map(g => new AiPlayer(g))
   }
 }

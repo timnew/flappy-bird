@@ -10,6 +10,10 @@ export class Score {
   ) {}
 }
 
+export function emptyScore(name: Name): Score {
+  return new Score(name)
+}
+
 export class LiveScore extends Score {
   increaseDistance(deltaDistance: number) {
     this.distance += deltaDistance
@@ -25,9 +29,15 @@ export class LiveScore extends Score {
     this.overall = this.distance + this.pipeCount * 500
   }
 
-  die(heightOffset: number) {
+  die(heightOffset: number): Score {
     this.death++
     this.overall -= heightOffset * 50
+
+    const snapshot = this.snapshot()
+
+    this.reset()
+
+    return snapshot
   }
 
   punish(score: number) {
@@ -36,6 +46,16 @@ export class LiveScore extends Score {
 
   reset() {
     this.overall = this.pipeCount = this.distance = 0
+  }
+
+  snapshot(): Score {
+    return new Score(
+      this.name,
+      this.overall,
+      this.pipeCount,
+      this.distance,
+      this.death
+    )
   }
 }
 

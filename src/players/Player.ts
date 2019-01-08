@@ -4,7 +4,7 @@ import Bird from '../world/Bird'
 import NameLabel from '../world/NameLabel'
 import { AttachedScoreLabel, ScoreLabel } from '../world/ScoreLabel'
 import Name, { fullName } from '../engine/Name'
-import { LiveScore, ScoreRecord } from './Score'
+import { LiveScore, ScoreRecord, emptyScore, Score } from './Score'
 import PlayerVisual from './PlayerVisual'
 
 export type BirdLeash = (command: string, data: any) => void
@@ -15,6 +15,7 @@ export default class Player {
   constructor(
     readonly name: Name,
     readonly liveScore: LiveScore = new LiveScore(fullName(name)),
+    public lastScore: Score = emptyScore(name),
     readonly scoreRecord: ScoreRecord = new ScoreRecord(fullName(name))
   ) {
     this.debug = createDebug(this.name)
@@ -74,9 +75,9 @@ export default class Player {
   }
 
   onDeath(heightOffset: number) {
-    this.liveScore.die(heightOffset)
-    this.scoreRecord.mergeIn(this.liveScore)
-    this.liveScore.reset()
+    this.lastScore = this.liveScore.die(heightOffset)
+
+    this.scoreRecord.mergeIn(this.lastScore)
     this.debug('Dead: $d', this.scoreRecord.death)
   }
 
