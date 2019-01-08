@@ -80,6 +80,10 @@ export default class KeyboardListener {
     return this.keyBindings.containsKey(code)
   }
 
+  clearAll() {
+    this.keyBindings.values().forEach(b => b.dispose())
+  }
+
   silence(code: string) {
     this.keyBindings.remove(code)
   }

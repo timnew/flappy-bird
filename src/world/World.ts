@@ -30,10 +30,6 @@ export default class World extends Stage<World> {
     this.addChild(this.scoreBoard)
 
     judge.startGame()
-
-    this.game.keyboard
-      .onKey('KeyQ')
-      .onEvent('keyDownSingle', () => judge.playerManager.reset())
   }
 
   gameOver() {
@@ -44,7 +40,6 @@ export default class World extends Stage<World> {
     // this.game.stage = gameEnd
 
     // this.game.keyboard.silence('keyQ')
-
     this.game.playerRegistry.evolute()
     const game = new World(this.game)
     game.setup()
