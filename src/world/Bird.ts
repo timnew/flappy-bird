@@ -80,6 +80,7 @@ export default class Bird extends ContainerActor<World> {
 
   update(deltaTime: number, world: World) {
     this.state.onUpdate(deltaTime)
+    this.player.renderScore()
   }
 
   updateVelocity(deltaTime: number) {

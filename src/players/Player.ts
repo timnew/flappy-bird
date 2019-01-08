@@ -3,7 +3,7 @@ import createDebug, { IDebugger } from 'debug'
 import Bird from '../world/Bird'
 import NameLabel from '../world/NameLabel'
 import { AttachedScoreLabel, ScoreLabel } from '../world/ScoreLabel'
-import Name, { typedName, fullName } from '../engine/Name'
+import Name, { fullName } from '../engine/Name'
 import { LiveScore, ScoreRecord } from './Score'
 import PipeGate from '../world/PipeGate'
 
@@ -81,7 +81,7 @@ export default class Player {
     return label
   }
 
-  protected renderScore() {
+  renderScore() {
     if (this.scoreLabel != null) {
       this.scoreLabel.renderScore(this)
     }
