@@ -16,6 +16,11 @@ import flatten from 'lodash.flatten'
 // [X] 5. Mutation Rate
 // [X] 6. Crossover Point
 
+// [X] 1. Punish bird hits sky or ground
+// [X] 2. Fix collision detection
+// [X] 3. Cap and normalize input vector // Implemented by Add an activation layer
+// [X] 4. Review model generation/mutation, make sure no input factors is way to overpowered!
+
 export default class Evolution {
   static generation: number = 0
   constructor(readonly players: Set<AiPlayer>) {}

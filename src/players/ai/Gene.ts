@@ -19,7 +19,7 @@ import {
   zeros,
   scalar
 } from '@tensorflow/tfjs'
-import { PlayerVisual } from '../Player'
+import PlayerVisual from '../PlayerVisual'
 
 export type Group<T> = [T, T]
 export type Pair<T1, T2> = [T1, T2]
@@ -38,13 +38,13 @@ export default class Gene {
 
   shouldFlap(visual: PlayerVisual): boolean {
     const value = tidy(() => {
-      const input = tensor2d([...visual.vector, 1], [1, 6])
+      const input = tensor2d([...visual, 1], [1, INPUT_DIM])
       const result = this.model.predict(input) as Tensor
 
       return result.dataSync()[0]
     })
 
-    return value > 0.5
+    return value > 0
   }
 }
 
@@ -54,8 +54,18 @@ export function createGene(name: Name): Gene {
     sequential({
       name: name,
       layers: [
-        layers.dense({ units: HIDDEN_LAYER_SIZE, inputDim: INPUT_DIM }),
-        layers.dense({ units: 1 })
+        layers.activation({ activation: 'softsign' }),
+        layers.dense({
+          units: HIDDEN_LAYER_SIZE,
+          inputDim: INPUT_DIM,
+          kernelInitializer: 'leCunNormal',
+          activation: 'softsign'
+        }),
+        layers.dense({
+          units: 1,
+          kernelInitializer: 'leCunNormal',
+          activation: 'softsign'
+        })
       ]
     })
   )
@@ -115,9 +125,9 @@ function generateCrossoverPoint(): Group<Tensor1D> {
 function extractWeights(gene: Gene): Tensor2D {
   const model = gene.model
   return concat([
-    model.getLayer(undefined, 0).getWeights()[0],
+    model.getLayer(undefined, 1).getWeights()[0],
     model
-      .getLayer(undefined, 1)
+      .getLayer(undefined, 2)
       .getWeights()[0]
       .transpose()
   ]) as Tensor2D
@@ -126,7 +136,7 @@ function extractWeights(gene: Gene): Tensor2D {
 function applyWeights(gene: Gene, weights: Group<Tensor[]>) {
   const model = gene.model
 
-  weights.forEach((w, i) => model.getLayer(undefined, i).setWeights(w))
+  weights.forEach((w, i) => model.getLayer(undefined, i + 1).setWeights(w))
 }
 
 function rebuildWeights(weightsMatrix: Tensor2D): Group<Tensor[]> {

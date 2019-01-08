@@ -5,10 +5,11 @@ import GameObject from '../engine/GameObject'
 import World from './World'
 import Bird, { PendingCallback } from './Bird'
 import PipeGate from './PipeGate'
-import Player, { PlayerVisual } from '../players/Player'
+import Player from '../players/Player'
 import Name, { singletonName } from '../engine/Name'
 import PlayerRegistry from '../players/PlayerRegistry'
 import { Set } from 'typescript-collections'
+import { captureVisual } from '../players/PlayerVisual'
 
 export default class Judge implements GameObject<World> {
   readonly name: Name = singletonName('Judge')
@@ -140,7 +141,7 @@ export default class Judge implements GameObject<World> {
       player.liveScore.increaseDistance(distance)
 
       if (this.nextPipe != null) {
-        player.onVisual(PlayerVisual.create(speed, bird, this.nextPipe))
+        player.onVisual(captureVisual(speed, bird, this.nextPipe))
       }
     })
   }

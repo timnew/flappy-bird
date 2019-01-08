@@ -1,6 +1,7 @@
-import Player, { PlayerVisual } from '../Player'
+import Player from '../Player'
 import Gene from './Gene'
 import { typedName } from '../../engine/Name'
+import PlayerVisual from '../PlayerVisual'
 
 export default class AiPlayer extends Player {
   constructor(readonly gene: Gene) {

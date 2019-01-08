@@ -5,41 +5,9 @@ import NameLabel from '../world/NameLabel'
 import { AttachedScoreLabel, ScoreLabel } from '../world/ScoreLabel'
 import Name, { fullName } from '../engine/Name'
 import { LiveScore, ScoreRecord } from './Score'
-import PipeGate from '../world/PipeGate'
+import PlayerVisual from './PlayerVisual'
 
 export type BirdLeash = (command: string, data: any) => void
-
-export class PlayerVisual {
-  constructor(readonly vector: number[]) {}
-
-  static create(speed: number, bird: Bird, pipe: PipeGate) {
-    const { gapPosition, halfGapSize, x } = pipe
-
-    return new PlayerVisual([
-      speed,
-      bird.velocity,
-      x - bird.x,
-      2 * halfGapSize,
-      gapPosition - bird.y
-    ])
-  }
-
-  get horizontalSpeed(): number {
-    return this.vector[0]
-  }
-  get verticalSpeed(): number {
-    return this.vector[1]
-  }
-  get distanceToNextPipe(): number {
-    return this.vector[2]
-  }
-  get pipeGap(): number {
-    return this.vector[3]
-  }
-  get heightDifference(): number {
-    return this.vector[4]
-  }
-}
 
 export default class Player {
   readonly debug: IDebugger
