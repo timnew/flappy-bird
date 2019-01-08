@@ -46,7 +46,7 @@ export default class PipeGate extends ContainerActor<World> {
   }
 
   testHit(bird: Bird): boolean {
-    const birdBounds = bird.getBounds()
+    const birdBounds = bird.birdSprite.getBounds()
 
     return (
       this.topPipe.getBounds().overlaps(birdBounds) ||
