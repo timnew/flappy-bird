@@ -54,10 +54,9 @@ export function createGene(name: Name): Gene {
     sequential({
       name: name,
       layers: [
-        layers.activation({ activation: 'softsign' }),
+        layers.activation({ activation: 'softsign', inputShape: [INPUT_DIM] }),
         layers.dense({
           units: HIDDEN_LAYER_SIZE,
-          inputDim: INPUT_DIM,
           kernelInitializer: 'leCunNormal',
           activation: 'softsign'
         }),
