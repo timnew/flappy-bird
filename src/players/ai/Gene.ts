@@ -70,17 +70,13 @@ export function createGene(name: Name): Gene {
   )
 }
 
-export function crossoverAndMutate(
-  generation: number,
-  index: number,
+export function crossoverAndMutateGene(
   genes: Group<Gene>,
-  mutateRate: number
+  newNames: Group<Name>,
+  mutateRate: number = 0.01,
+  mutateStrength: number = 0.5
 ): Group<Gene> {
-  const parentName = `G${generation}`
-  const newGenes = [
-    createGene(typedName(parentName, String(index))),
-    createGene(typedName(parentName, String(index + 1)))
-  ] as Group<Gene>
+  const newGenes = newNames.map(n => createGene(n)) as Group<Gene>
 
   tidy(() => {
     const weightCube = concat(genes.map(extractWeights), 1)
@@ -98,9 +94,9 @@ export function crossoverAndMutate(
       gather(weightCube, i, 1)
     ) as Group<Tensor2D>
 
-    const mutated = afterCrossover.map(m => mutate(m, mutateRate)) as Group<
-      Tensor2D
-    >
+    const mutated = afterCrossover.map(m =>
+      mutate(m, mutateRate, mutateStrength)
+    ) as Group<Tensor2D>
 
     transposeGroup([newGenes, mutated]).map(([g, w]: Pair<Gene, Tensor2D>) =>
       applyWeights(g, rebuildWeights(w))
@@ -147,9 +143,26 @@ function rebuildWeights(weightsMatrix: Tensor2D): Group<Tensor[]> {
   ]
 }
 
+export function mutateGene(
+  gene: Gene,
+  name: Name,
+  mutateRate: number,
+  mutateStrength: number
+): Gene {
+  const result = createGene(name)
+
+  tidy(() => {
+    const weightsMatrix = extractWeights(gene)
+    const mutated = mutate(weightsMatrix, mutateRate, mutateStrength)
+    applyWeights(result, rebuildWeights(mutated))
+  })
+
+  return result
+}
+
 function mutate(
   weightsMatrix: Tensor2D,
-  mutateRate: number,
+  mutateRate: number = 0.01,
   mutateStrength: number = 0.5
 ): Tensor2D {
   const shape = weightsMatrix.shape

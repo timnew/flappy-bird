@@ -6,8 +6,9 @@ import { Set } from 'typescript-collections'
 import shuffle from 'lodash.shuffle'
 import maxBy from 'lodash.maxby'
 import chunk from 'lodash.chunk'
-import Gene, { crossoverAndMutate, Group } from './ai/Gene'
+import Gene, { crossoverAndMutateGene, Group, mutateGene } from './ai/Gene'
 import flatten from 'lodash.flatten'
+import Name, { typedName } from '../engine/Name'
 
 // [X] 1. Fitness should calculate vertical distance from the center of gap on death
 // [X] 2. Input should include vertical velocity
@@ -23,7 +24,15 @@ import flatten from 'lodash.flatten'
 
 export default class Evolution {
   static generation: number = 0
-  constructor(readonly players: Set<AiPlayer>) {}
+
+  private index: number = 0
+  constructor(readonly players: Set<AiPlayer>) {
+    Evolution.generation++
+  }
+
+  generateName(): Name {
+    return typedName(`G${Evolution.generation}`, String(this.index++))
+  }
 
   run() {
     const players = this.players
@@ -31,16 +40,18 @@ export default class Evolution {
       debug('Add player %s', player.name)
       players.add(player)
     }
-    const selected = this.tournamentSelection(players.toArray())
+    const selected = this.tournamentSelection(players.toArray(), 2, 2)
     players.clear()
 
     selected.forEach(addPlayer)
-    const crossoverGroup = selected
-    // const { crossoverGroup, remainGroup } = this.crossoverDivide(selected)
+
+    // const { crossoverGroup, remainGroup } = this.crossoverDividePlayers(selected)
     // remainGroup.forEach(addPlayer)
 
-    const newGeneration = this.nextGeneration(crossoverGroup)
-    newGeneration.forEach(addPlayer)
+    this.crossoverPlayers(selected).forEach(addPlayer)
+
+    this.mutatePlayers(selected, 0.1, 2).forEach(addPlayer)
+    this.mutatePlayers(selected, 0.5, 0.5).forEach(addPlayer)
   }
 
   tournamentSelection(
@@ -62,7 +73,7 @@ export default class Evolution {
     return this.tournamentSelection(selected, groupSize, rounds - 1)
   }
 
-  crossoverDivide(
+  crossoverDividePlayers(
     players: AiPlayer[],
     crossoverRate = 0.8
   ): { crossoverGroup: AiPlayer[]; remainGroup: AiPlayer[] } {
@@ -88,23 +99,35 @@ export default class Evolution {
     }
   }
 
-  nextGeneration(players: AiPlayer[], mutateRate: number = 0.1): AiPlayer[] {
-    Evolution.generation++
-    let index = -2
+  crossoverPlayers(
+    players: AiPlayer[],
+    mutateRate: number = 0.01,
+    mutateStrength: number = 0.5
+  ): AiPlayer[] {
     const pairs = chunk(players, 2)
     const afterCrossover = pairs.map(group => {
       const genes = group.map(player => player.gene) as Group<Gene>
 
-      index += 2
-
-      return crossoverAndMutate(
-        Evolution.generation,
-        index,
+      return crossoverAndMutateGene(
         genes,
-        mutateRate
+        [this.generateName(), this.generateName()] as Group<Name>,
+        mutateRate,
+        mutateStrength
       ).map(g => new AiPlayer(g))
     })
 
     return flatten(afterCrossover)
+  }
+
+  mutatePlayers(
+    players: AiPlayer[],
+    mutateRate: number,
+    mutateStrength: number
+  ): AiPlayer[] {
+    return players
+      .map(p =>
+        mutateGene(p.gene, this.generateName(), mutateRate, mutateStrength)
+      )
+      .map(g => new AiPlayer(g))
   }
 }
