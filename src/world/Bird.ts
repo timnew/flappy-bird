@@ -134,7 +134,11 @@ export default class Bird extends ContainerActor<World> {
   }
 
   kill(byPipe: PipeGate) {
-    this.state.onKill(byPipe)
+    const heightOffset =
+      Math.abs(this.y - byPipe.gapPosition) -
+      byPipe.halfGapSize +
+      this.height / 2
+    this.state.onKill(heightOffset)
   }
 }
 
@@ -152,7 +156,7 @@ abstract class BirdState {
 
   onFlap() {}
 
-  onKill(pipe: PipeGate) {}
+  onKill(heightOffset: number) {}
 
   onHitTop() {}
 
@@ -183,11 +187,15 @@ class BirdLiveState extends BirdState {
     bird.updateRotation()
   }
 
-  onKill(pipe: PipeGate) {
-    const heightOffset =
-      Math.abs(this.bird.y - pipe.gapPosition) -
-      pipe.halfGapSize +
-      this.bird.height / 2
+  onHitBottom() {
+    this.bird.player.liveScore.punish(500)
+  }
+
+  onHitTop() {
+    this.bird.player.liveScore.punish(500)
+  }
+
+  onKill(heightOffset: number) {
     new BirdDeadState(this.bird, heightOffset)
   }
 }

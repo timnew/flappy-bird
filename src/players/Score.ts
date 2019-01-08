@@ -30,6 +30,10 @@ export class LiveScore extends Score {
     this.overall -= heightOffset * 50
   }
 
+  punish(score: number) {
+    this.overall -= score
+  }
+
   reset() {
     this.overall = this.pipeCount = this.distance = 0
   }
