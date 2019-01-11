@@ -13,7 +13,8 @@ export function captureVisual(
     speed,
     bird.velocity,
     pipe.x - bird.x,
-    2 * pipe.halfGapSize,
-    pipe.gapPosition - bird.y
+    pipe.gapPosition - bird.y,
+    pipe.gapPosition - pipe.halfGapSize - bird.y, // 2 * pipe.halfGapSize,
+    pipe.gapPosition + pipe.halfGapSize - bird.y // pipe.gapPosition - bird.y
   ]
 }

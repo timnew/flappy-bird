@@ -31,7 +31,7 @@ function transposeGroup<T1, T2>([[a1, a2], [b1, b2]]: Pair<
 }
 
 export const HIDDEN_LAYER_SIZE: number = 10
-export const INPUT_DIM: number = 6
+export const INPUT_DIM: number = 7
 
 export default class Gene {
   constructor(readonly name: Name, readonly model: Sequential) {}
