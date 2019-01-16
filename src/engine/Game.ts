@@ -6,6 +6,8 @@ import PlayerRegistry from '../players/PlayerRegistry'
 import GameObject from './GameObject'
 
 class Game {
+  private paused: boolean = false
+
   constructor(private app: Application) {}
 
   readonly playerRegistry: PlayerRegistry = new PlayerRegistry()
@@ -30,6 +32,10 @@ class Game {
   setup() {
     this.keyboard.subscribe()
 
+    this.keyboard.onKey('KeyP').onEvent('keyDownSingle', () => {
+      this.paused = !this.paused
+    })
+
     this.playerRegistry.addHumanPlayer('TimNew', this.keyboard.onKey('Space'))
     this.playerRegistry.createAi(10)
 
@@ -49,6 +55,8 @@ class Game {
   }
 
   loop() {
+    if (this.paused) return
+
     const ticker = this.app.ticker
 
     this.stage.update(ticker.elapsedMS / 1000, this)
