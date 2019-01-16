@@ -157,6 +157,13 @@ export default class Judge implements GameObject<World> {
     //   this.createBirdForPlayer(player, this.playerManager.onActivate())
     // }
   }
+
+  destroyAllBirds() {
+    this.birdsAlive.forEach(b => {
+      b.destroy()
+      this.playerManager.removeBird(b)
+    })
+  }
 }
 
 class PlayerManager {

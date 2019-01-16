@@ -141,6 +141,10 @@ export default class Bird extends ContainerActor<World> {
       this.height / 2
     this.state.onKill(heightOffset)
   }
+
+  destroy() {
+    this.state.onKill(0)
+  }
 }
 
 abstract class BirdState {
